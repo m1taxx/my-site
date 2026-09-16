@@ -120,6 +120,156 @@
     margin-bottom:2px;
   }
 
+  .current-pair-card{
+    background:var(--card);
+    border:1px solid var(--border);
+    border-radius:var(--radius);
+    padding:16px;
+    margin-bottom:22px;
+    box-shadow:var(--shadow);
+    display:none;
+  }
+  .current-pair-card.active{
+    display:block;
+  }
+  .current-pair-card.hidden{
+    display:none;
+  }
+
+  .pair-card-top{
+    display:flex;
+    align-items:flex-start;
+    gap:16px;
+    margin-bottom:14px;
+  }
+
+  .time-badge{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    width:80px;
+    height:80px;
+    min-flex:0;
+    border-radius:12px;
+    background:var(--amber-soft);
+    border:2px solid var(--amber);
+    flex-direction:column;
+  }
+
+  .time-badge .time-big{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:24px;
+    font-weight:600;
+    color:var(--amber);
+    line-height:1;
+  }
+
+  .time-badge .time-label{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:9px;
+    color:var(--amber);
+    margin-top:4px;
+    text-transform:uppercase;
+    letter-spacing:0.5px;
+  }
+
+  .pair-info{
+    flex:1;
+  }
+
+  .pair-info .subject{
+    font-family:'Space Grotesk', sans-serif;
+    font-size:16px;
+    font-weight:600;
+    color:var(--ink);
+    margin:0 0 8px;
+    line-height:1.3;
+  }
+
+  .pair-info .meta{
+    font-size:12px;
+    color:var(--ink-soft);
+    line-height:1.5;
+    margin-bottom:4px;
+  }
+
+  .pair-info .meta .type{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:10px;
+    text-transform:lowercase;
+    color:var(--teal);
+    background:var(--teal-soft);
+    padding:1px 6px;
+    border-radius:4px;
+    margin-right:6px;
+  }
+
+  .pair-info .teacher{
+    font-size:11px;
+    color:var(--ink-faint);
+    font-family:'IBM Plex Mono', monospace;
+  }
+
+  .time-progress{
+    width:100%;
+  }
+
+  .time-progress-label{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    font-size:11px;
+    color:var(--ink-faint);
+    font-family:'IBM Plex Mono', monospace;
+    margin-bottom:6px;
+  }
+
+  .time-progress-bar{
+    width:100%;
+    height:6px;
+    background:var(--border);
+    border-radius:3px;
+    overflow:hidden;
+  }
+
+  .time-progress-fill{
+    height:100%;
+    background:var(--amber);
+    border-radius:3px;
+    transition:width 0.3s ease;
+  }
+
+  .time-remaining{
+    display:flex;
+    gap:8px;
+    margin-top:8px;
+  }
+
+  .time-remaining-item{
+    flex:1;
+    background:var(--paper);
+    border:1px solid var(--border);
+    border-radius:6px;
+    padding:8px 10px;
+    text-align:center;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11px;
+  }
+
+  .time-remaining-value{
+    display:block;
+    font-size:16px;
+    font-weight:600;
+    color:var(--amber);
+    margin-bottom:2px;
+  }
+
+  .time-remaining-label{
+    display:block;
+    color:var(--ink-faint);
+    font-size:9px;
+  }
+
   nav.days{
     display:flex;
     gap:4px;
@@ -368,6 +518,21 @@
     .now-card{text-align:left;min-width:0;}
     header.top{flex-direction:column;}
     .pair-head{grid-template-columns:52px 1fr auto;padding:12px;}
+    
+    .pair-card-top{
+      flex-direction:column;
+    }
+    .time-badge{
+      align-self:stretch;
+      width:auto;
+      height:auto;
+      padding:12px;
+      flex-direction:row;
+      gap:12px;
+    }
+    .time-badge .time-big{
+      font-size:20px;
+    }
   }
 </style>
 </head>
@@ -386,6 +551,41 @@
     </div>
   </header>
 
+  <div class="current-pair-card" id="currentPairCard">
+    <div class="pair-card-top">
+      <div class="time-badge">
+        <span class="time-big" id="currentTime">13:08</span>
+        <span class="time-label">час</span>
+      </div>
+      <div class="pair-info">
+        <p class="subject" id="currentSubject">—</p>
+        <div class="meta">
+          <span class="type" id="currentType">—</span>
+          <span id="currentTeacher">—</span>
+        </div>
+      </div>
+    </div>
+    <div class="time-progress">
+      <div class="time-progress-label">
+        <span>Час до кінця пари</span>
+        <span id="progressPercent">0%</span>
+      </div>
+      <div class="time-progress-bar">
+        <div class="time-progress-fill" id="progressFill"></div>
+      </div>
+    </div>
+    <div class="time-remaining">
+      <div class="time-remaining-item">
+        <span class="time-remaining-value" id="remainingMins">0</span>
+        <span class="time-remaining-label">хвилин</span>
+      </div>
+      <div class="time-remaining-item">
+        <span class="time-remaining-value" id="endTime">—:—</span>
+        <span class="time-remaining-label">закінчення</span>
+      </div>
+    </div>
+  </div>
+
   <nav class="days" id="daysNav"></nav>
 
   <div id="panels"></div>
@@ -399,10 +599,10 @@
 
 <script>
 const TIME = {
-  1: "8:30–9:15 / 9:20–10:05",
-  2: "10:15–11:00 / 11:05–11:50",
-  3: "12:00–12:45 / 12:50–13:35",
-  4: "14:00–14:45 / 14:50–15:35"
+  1: {start: "8:30", end: "10:05", display: "8:30–9:15 / 9:20–10:05"},
+  2: {start: "10:15", end: "11:50", display: "10:15–11:00 / 11:05–11:50"},
+  3: {start: "12:00", end: "13:35", display: "12:00–12:45 / 12:50–13:35"},
+  4: {start: "14:00", end: "15:35", display: "14:00–14:45 / 14:50–15:35"}
 };
 
 // materials: array of {label, url}. Empty for now — links get added here later.
@@ -492,7 +692,7 @@ const SCHEDULE = {
       { label:"Zoom", url:L.zoomRublyov },
       { label:"Методичка (текст)", url:"materials/matan-metodichka.pdf" }
     ] },
-    { pair:2, subject:"Іноземна мова", type:"пр · 24 год", teacher:"Дороніна", extra:"+ Математичний аналіз, пр · 2 год — проф. Рубльов Б.В.", materials:[
+    { pair:2, subject:"Іноземна мова", type:"пр · 24 год", teacher:"Дороніна", extra:"+ Математичний аналіз, пр · 2 год — проф. Рубльов", materials:[
       { label:"Zoom — English ", url:L.zoomDoronina }
     ] },
     { pair:3, subject:"Іноземна мова", type:"пр · 28 год", teacher:"Дороніна", materials:[
@@ -537,7 +737,7 @@ days.forEach((day, i) => {
     head.innerHTML = `
       <div class="pair-num">
         <span class="roman">${ROMAN[lesson.pair]}</span>
-        <span class="time">${TIME[lesson.pair]}</span>
+        <span class="time">${TIME[lesson.pair].display}</span>
       </div>
       <div class="pair-body">
         <p class="subject">${lesson.subject}</p>
@@ -604,6 +804,82 @@ if (todayName) {
 } else {
   nowText.textContent = "вихідний";
 }
+
+// Current pair card logic
+function timeStrToMinutes(timeStr) {
+  const [hours, mins] = timeStr.split(':').map(Number);
+  return hours * 60 + mins;
+}
+
+function minutesToTimeStr(minutes) {
+  const h = Math.floor(minutes / 60);
+  const m = minutes % 60;
+  return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+}
+
+function getCurrentPair() {
+  if (!todayName) return null;
+  
+  const now = new Date();
+  const currentMins = now.getHours() * 60 + now.getMinutes();
+  
+  const todaySchedule = SCHEDULE[todayName];
+  
+  for (let lesson of todaySchedule) {
+    const startMins = timeStrToMinutes(TIME[lesson.pair].start);
+    const endMins = timeStrToMinutes(TIME[lesson.pair].end);
+    
+    if (currentMins >= startMins && currentMins < endMins) {
+      return {
+        lesson,
+        startMins,
+        endMins,
+        currentMins
+      };
+    }
+  }
+  
+  return null;
+}
+
+function updateCurrentPairCard() {
+  const currentPair = getCurrentPair();
+  const card = document.getElementById('currentPairCard');
+  
+  if (!currentPair) {
+    card.classList.remove('active');
+    card.classList.add('hidden');
+    return;
+  }
+  
+  card.classList.add('active');
+  card.classList.remove('hidden');
+  
+  const { lesson, startMins, endMins, currentMins } = currentPair;
+  const now = new Date();
+  
+  // Update time
+  document.getElementById('currentTime').textContent = 
+    `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+  
+  // Update lesson info
+  document.getElementById('currentSubject').textContent = lesson.subject;
+  document.getElementById('currentType').textContent = lesson.type;
+  document.getElementById('currentTeacher').textContent = lesson.teacher || '—';
+  
+  // Calculate remaining time
+  const remainingMins = endMins - currentMins;
+  const progressPercent = Math.round(((currentMins - startMins) / (endMins - startMins)) * 100);
+  
+  document.getElementById('remainingMins').textContent = remainingMins;
+  document.getElementById('endTime').textContent = minutesToTimeStr(endMins);
+  document.getElementById('progressPercent').textContent = `${progressPercent}%`;
+  document.getElementById('progressFill').style.width = `${progressPercent}%`;
+}
+
+// Update every 10 seconds
+setInterval(updateCurrentPairCard, 10000);
+updateCurrentPairCard();
 
 </script>
 </body>
