@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>К-10 · Розклад</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#f6f4ee;
+    --paper-line: rgba(31,42,68,0.08);
+    --ink:#1f2a44;
+    --ink-soft:#4d5872;
+    --ink-faint:#8a92a6;
+    --teal:#1b6e63;
+    --teal-soft: rgba(27,110,99,0.10);
+    --amber:#c97a1f;
+    --amber-soft: rgba(201,122,31,0.12);
+    --card:#ffffff;
+    --border: rgba(31,42,68,0.14);
+    --shadow: 0 1px 0 rgba(31,42,68,0.06);
+    --radius: 10px;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --paper:#14181f;
+      --paper-line: rgba(230,233,240,0.06);
+      --ink:#e9ecf3;
+      --ink-soft:#aab1c4;
+      --ink-faint:#727a90;
+      --teal:#4fb3a4;
+      --teal-soft: rgba(79,179,164,0.14);
+      --amber:#e3a95a;
+      --amber-soft: rgba(227,169,90,0.14);
+      --card:#1b2029;
+      --border: rgba(230,233,240,0.12);
+      --shadow: 0 1px 0 rgba(0,0,0,0.3);
+    }
+  }
+  :root[data-theme="dark"]{
+    --paper:#14181f;
+    --paper-line: rgba(230,233,240,0.06);
+    --ink:#e9ecf3;
+    --ink-soft:#aab1c4;
+    --ink-faint:#727a90;
+    --teal:#4fb3a4;
+    --teal-soft: rgba(79,179,164,0.14);
+    --amber:#e3a95a;
+    --amber-soft: rgba(227,169,90,0.14);
+    --card:#1b2029;
+    --border: rgba(230,233,240,0.12);
+    --shadow: 0 1px 0 rgba(0,0,0,0.3);
+  }
+
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:
+      linear-gradient(var(--paper-line) 1px, transparent 1px) 0 0 / 100% 32px,
+      var(--paper);
+    color:var(--ink);
+    font-family:'IBM Plex Sans', system-ui, -apple-system, Segoe UI, sans-serif;
+    min-height:100vh;
+    -webkit-font-smoothing:antialiased;
+  }
+
+  .wrap{
+    max-width:760px;
+    margin:0 auto;
+    padding:28px 20px 80px;
+  }
+
+  header.top{
+    display:flex;
+    align-items:flex-start;
+    justify-content:space-between;
+    gap:16px;
+    padding-bottom:20px;
+    border-bottom:1px solid var(--border);
+    margin-bottom:22px;
+    flex-wrap:wrap;
+  }
+  .group-tag{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12px;
+    letter-spacing:0.02em;
+    color:var(--teal);
+    background:var(--teal-soft);
+    padding:3px 8px;
+    border-radius:6px;
+    display:inline-block;
+    margin-bottom:10px;
+  }
+  h1{
+    font-family:'Space Grotesk', sans-serif;
+    font-weight:600;
+    font-size:28px;
+    line-height:1.15;
+    margin:0 0 6px;
+    color:var(--ink);
+  }
+  .sub{
+    color:var(--ink-soft);
+    font-size:14px;
+    line-height:1.5;
+  }
+  .now-card{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12px;
+    color:var(--ink-faint);
+    text-align:right;
+    min-width:150px;
+  }
+  .now-card .now-label{
+    color:var(--amber);
+    font-weight:600;
+    display:block;
+    margin-bottom:2px;
+  }
+
+  nav.days{
+    display:flex;
+    gap:4px;
+    overflow-x:auto;
+    padding-bottom:2px;
+    margin-bottom:22px;
+    border-bottom:1px solid var(--border);
+  }
+  nav.days button{
+    font-family:'Space Grotesk', sans-serif;
+    font-size:14px;
+    font-weight:500;
+    color:var(--ink-soft);
+    background:none;
+    border:none;
+    padding:10px 14px;
+    cursor:pointer;
+    white-space:nowrap;
+    position:relative;
+    border-radius:6px 6px 0 0;
+  }
+  nav.days button .dot{
+    display:inline-block;
+    width:5px;height:5px;
+    border-radius:50%;
+    background:var(--amber);
+    margin-left:6px;
+    vertical-align:middle;
+    opacity:0;
+  }
+  nav.days button.is-today .dot{opacity:1;}
+  nav.days button.active{
+    color:var(--ink);
+  }
+  nav.days button.active::after{
+    content:"";
+    position:absolute;
+    left:8px;right:8px;bottom:-1px;
+    height:2px;
+    background:var(--teal);
+  }
+  nav.days button:hover{color:var(--ink);}
+
+  .day-panel{display:none;}
+  .day-panel.active{display:block;}
+
+  .pair{
+    background:var(--card);
+    border:1px solid var(--border);
+    border-radius:var(--radius);
+    margin-bottom:10px;
+    box-shadow:var(--shadow);
+    overflow:hidden;
+  }
+  .pair-head{
+    display:grid;
+    grid-template-columns:64px 1fr auto;
+    gap:14px;
+    align-items:start;
+    padding:14px 16px;
+    cursor:pointer;
+  }
+  .pair-num{
+    font-family:'IBM Plex Mono', monospace;
+    text-align:left;
+  }
+  .pair-num .roman{
+    font-size:13px;
+    font-weight:600;
+    color:var(--ink);
+    display:block;
+  }
+  .pair-num .time{
+    font-size:11.5px;
+    color:var(--ink-faint);
+    display:block;
+    margin-top:3px;
+    line-height:1.35;
+  }
+  .pair-body .subject{
+    font-family:'Space Grotesk', sans-serif;
+    font-size:15.5px;
+    font-weight:600;
+    color:var(--ink);
+    margin:0 0 4px;
+    line-height:1.3;
+  }
+  .pair-body .meta{
+    font-size:13px;
+    color:var(--ink-soft);
+    line-height:1.5;
+  }
+  .pair-body .meta .type{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11px;
+    text-transform:lowercase;
+    color:var(--teal);
+    background:var(--teal-soft);
+    padding:1px 6px;
+    border-radius:4px;
+    margin-right:6px;
+  }
+  .pair-body .extra{
+    margin-top:6px;
+    padding-top:6px;
+    border-top:1px dashed var(--border);
+    font-size:12.5px;
+    color:var(--ink-faint);
+  }
+  .toggle{
+    align-self:center;
+    color:var(--ink-faint);
+    font-size:12px;
+    font-family:'IBM Plex Mono', monospace;
+    display:flex;
+    align-items:center;
+    gap:6px;
+    white-space:nowrap;
+    padding-top:2px;
+  }
+  .toggle .chev{
+    transition:transform .18s ease;
+    display:inline-block;
+  }
+  .pair.open .toggle .chev{transform:rotate(90deg);}
+  .folder-count{
+    font-size:11px;
+    background:var(--amber-soft);
+    color:var(--amber);
+    padding:1px 6px;
+    border-radius:4px;
+  }
+  .pair.has-materials .folder-count{
+    background:var(--teal-soft);
+    color:var(--teal);
+  }
+
+  .materials{
+    max-height:0;
+    overflow:hidden;
+    transition:max-height .22s ease;
+    border-top:1px solid transparent;
+  }
+  .pair.open .materials{
+    border-top:1px solid var(--border);
+  }
+  .materials-inner{
+    padding:14px 16px 16px 16px;
+  }
+  .materials ul{
+    list-style:none;
+    margin:0;
+    padding:0;
+    display:flex;
+    flex-direction:column;
+    gap:6px;
+  }
+  .materials li a{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    color:var(--ink);
+    text-decoration:none;
+    font-size:13.5px;
+    padding:8px 10px;
+    border:1px solid var(--border);
+    border-radius:7px;
+    background:var(--paper);
+  }
+  .materials li a:hover{
+    border-color:var(--teal);
+    color:var(--teal);
+  }
+  .materials li a .ico{
+    font-size:14px;
+    flex-shrink:0;
+  }
+  .upload-btn{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    width:100%;
+    text-align:left;
+    font:inherit;
+    font-size:13.5px;
+    color:var(--ink-soft);
+    background:transparent;
+    padding:8px 10px;
+    border:1px dashed var(--border);
+    border-radius:7px;
+    cursor:pointer;
+  }
+  .upload-btn:hover{
+    border-color:var(--teal);
+    color:var(--teal);
+  }
+  .upload-btn .plus{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:13px;
+  }
+  .upload-btn.busy{
+    opacity:0.6;
+    cursor:default;
+  }
+  .file-badge{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    color:var(--ink-soft);
+    font-size:13.5px;
+    padding:8px 10px;
+    border:1px dashed var(--border);
+    border-radius:7px;
+    background:transparent;
+  }
+  .file-badge .chat-tag{
+    margin-left:auto;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:10.5px;
+    color:var(--amber);
+    background:var(--amber-soft);
+    padding:1px 6px;
+    border-radius:4px;
+  }
+  .empty-folder{
+    font-size:13px;
+    color:var(--ink-faint);
+    font-style:normal;
+    padding:10px 10px;
+    border:1px dashed var(--border);
+    border-radius:7px;
+  }
+
+  footer{
+    margin-top:32px;
+    padding-top:16px;
+    border-top:1px solid var(--border);
+    font-size:12px;
+    color:var(--ink-faint);
+    font-family:'IBM Plex Mono', monospace;
+    line-height:1.6;
+  }
+
+  @media (max-width:480px){
+    h1{font-size:22px;}
+    .now-card{text-align:left;min-width:0;}
+    header.top{flex-direction:column;}
+    .pair-head{grid-template-columns:52px 1fr auto;padding:12px;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <div>
+      <span class="group-tag">ФКНК · 1 курс · прикладна математика</span>
+      <h1>Група К-10</h1>
+      <div class="sub">1 семестр, 2026–2027 н.р.</div>
+    </div>
+    <div class="now-card" id="nowCard">
+      <span class="now-label">сьогодні</span>
+      <span id="nowText">—</span>
+    </div>
+  </header>
+
+  <nav class="days" id="daysNav"></nav>
+
+  <div id="panels"></div>
+
+  <footer>
+    Розклад дзвінків · I 8:30–10:05 · II 10:15–11:50 · III 12:00–13:35 · IV 14:00–15:35<br>
+    Натисни на пару, щоб відкрити папку з матеріалами.
+  </footer>
+
+</div>
+
+<script>
+const TIME = {
+  1: "8:30–9:15 / 9:20–10:05",
+  2: "10:15–11:00 / 11:05–11:50",
+  3: "12:00–12:45 / 12:50–13:35",
+  4: "14:00–14:45 / 14:50–15:35"
+};
+
+// materials: array of {label, url}. Empty for now — links get added here later.
+// shared links, so they're only defined once
+const L = {
+  zoomRublyov: "https://us04web.zoom.us/j/2409434137?pwd=RTRKYmNLU0FlTGdVaVp4ZlBIRE12UT09",
+  zoomTrokhymchuk: "https://knu-ua.zoom.us/j/87542077807?pwd=a3U1eC9tcWNZZnFyZTBOY0VyanBuUT09",
+  dmBook: "https://t.me/c/4362028786/7",
+  meetSamoylov: "https://meet.google.com/aiy-ohvn-hwp",
+  zoomVeklichLek: "https://knu-ua.zoom.us/j/83875785456?pwd=fkgaBRrkj2ADWGsO6zU1EbMp3X5nnI.1",
+  zoomVeklichPr: "https://knu-ua.zoom.us/j/85962736513?pwd=Rg40b0zDJbLgdkNb3hbq4p781lvD8O.1",
+  driveVeklich: "https://drive.google.com/drive/folders/1SNeCorCzJO5WXzOGCDc8V9FYWQmqmClw",
+  zoomRabanovych: "https://us04web.zoom.us/j/77750879149?pwd=b25aARo3wCUbq6lVrINClTp41WV7Nr.1",
+  driveAlgebra: "https://drive.google.com/drive/folders/19cO5l7x1nQXux0yWxCsz8jgFweLkZreu",
+  zoomDavydov: "https://us04web.zoom.us/j/77671147346?pwd=JVB0oJzf9yEbErf5xVLaFD6hApkJvA.1"
+};
+
+const SCHEDULE = {
+  "Понеділок": [
+    { pair:1, subject:"Вступ до університетських студій", type:"лек · 28 год", teacher:"доц. Набока С.В.", materials:[] },
+    { pair:2, subject:"Програмування", type:"лек · 20 год + конс. 2 год", teacher:"ас. Веклич Р.М.", materials:[
+      { label:"Zoom (лекція)", url:L.zoomVeklichLek },
+      { label:"Google Диск", url:L.driveVeklich }
+    ] },
+    { pair:3, subject:"Алгебра та геометрія", type:"лек · 28 год", teacher:"доц. Рабанович В.І.", materials:[
+      { label:"Zoom (лекція)", url:L.zoomRabanovych },
+      { label:"Google Диск", url:L.driveAlgebra }
+    ] },
+    { pair:4, subject:"ОНС", type:"16 год", teacher:"", materials:[] }
+  ],
+  "Вівторок": [
+    { pair:1, subject:"Дискретна математика", type:"лек · 20 год + конс. 2 год", teacher:"доц. Трохимчук Р.М.", materials:[
+      { label:"Zoom (лекція)", url:L.zoomTrokhymchuk },
+      { label:"Конспект / книга", url:L.dmBook },
+      { label:"Дискретна математика (текст)", url:"materials/discrete-math.pdf" }
+    ] },
+    { pair:2, subject:"Математичний аналіз 1", type:"лек · 28 год", teacher:"проф. Рубльов Б.В.", materials:[
+      { label:"Zoom", url:L.zoomRublyov },
+      { label:"Методичка (текст)", url:"materials/matan-metodichka.pdf" }
+    ] },
+    { pair:3, subject:"Математичний аналіз 1", type:"лек (продовження)", teacher:"проф. Рубльов Б.В.", materials:[
+      { label:"Zoom", url:L.zoomRublyov },
+      { label:"Методичка (текст)", url:"materials/matan-metodichka.pdf" }
+    ] },
+    { pair:4, subject:"ОНС", type:"16 год", teacher:"", materials:[] }
+  ],
+  "Середа": [
+    { pair:1, subject:"Програмування", type:"лаб · 22 год", teacher:"ас. Веклич Р.А.", materials:[
+      { label:"Zoom (практика)", url:L.zoomVeklichPr },
+      { label:"Google Диск", url:L.driveVeklich }
+    ] },
+    { pair:2, subject:"Алгебра та геометрія", type:"пр · 22 год", teacher:"ас. Давидов О.О.", materials:[
+      { label:"Zoom", url:L.zoomDavydov },
+      { label:"Google Диск", url:L.driveAlgebra },
+      { label:"Домашнє завдання (текст)", url:"materials/algebra-dz.pdf" }
+    ] },
+    { pair:3, subject:"Математичний аналіз", type:"пр · 28 год", teacher:"проф. Номіровський А.Д.", materials:[] },
+    { pair:4, subject:"Алгебра та геометрія", type:"лек · 22 год + конс. 2 год", teacher:"доц. Рабанович В.Я.", materials:[
+      { label:"Zoom (лекція)", url:L.zoomRabanovych },
+      { label:"Google Диск", url:L.driveAlgebra }
+    ] }
+  ],
+  "Четвер": [
+    { pair:1, subject:"Дискретна математика", type:"пр · 22 год", teacher:"ас. Самойлов", materials:[
+      { label:"Google Meet (практика)", url:L.meetSamoylov },
+      { label:"Конспект / книга", url:L.dmBook },
+      { label:"Дискретна математика (текст)", url:"materials/discrete-math.pdf" }
+    ] },
+    { pair:2, subject:"Математичний аналіз", type:"пр · 28 год", teacher:"доц. Рубльов Б.В.", materials:[
+      { label:"Zoom", url:L.zoomRublyov },
+      { label:"Методичка (текст)", url:"materials/matan-metodichka.pdf" }
+    ] },
+    { pair:3, subject:"Алгебра та геометрія", type:"пр · 28 год", teacher:"ас. Давидов О.О.", materials:[
+      { label:"Zoom", url:L.zoomDavydov },
+      { label:"Google Диск", url:L.driveAlgebra },
+      { label:"Домашнє завдання (текст)", url:"materials/algebra-dz.pdf" }
+    ] },
+    { pair:4, subject:"ОНС", type:"16 год", teacher:"", materials:[] }
+  ],
+  "П'ятниця": [
+    { pair:1, subject:"Математичний аналіз", type:"пр · 28 год", teacher:"проф. Рубльов Б.В.", materials:[
+      { label:"Zoom", url:L.zoomRublyov },
+      { label:"Методичка (текст)", url:"materials/matan-metodichka.pdf" }
+    ] },
+    { pair:2, subject:"Іноземна мова", type:"пр · 24 год", teacher:"Дороніна", extra:"+ Математичний аналіз, пр · 2 год — проф. Рубльов Б.В.", materials:[
+      { label:"Zoom — Мат. аналіз (Рубльов)", url:L.zoomRublyov }
+    ] },
+    { pair:3, subject:"Іноземна мова", type:"пр · 28 год", teacher:"Дороніна", materials:[] },
+    { pair:4, subject:"Математичний аналіз", type:"пр · 28 год (одна з підгруп)", teacher:"проф. Номіровський А.Д.", materials:[] }
+  ]
+};
+
+const ROMAN = {1:"I",2:"II",3:"III",4:"IV"};
+const days = Object.keys(SCHEDULE);
+
+// JS getDay(): 0 Sun ... 6 Sat -> map to our day names (Mon-Fri)
+const jsDayToName = {1:"Понеділок",2:"Вівторок",3:"Середа",4:"Четвер",5:"П'ятниця"};
+const todayName = jsDayToName[new Date().getDay()] || null;
+
+const nav = document.getElementById('daysNav');
+const panels = document.getElementById('panels');
+
+days.forEach((day, i) => {
+  const btn = document.createElement('button');
+  btn.textContent = day;
+  btn.dataset.day = day;
+  if (day === todayName) btn.classList.add('is-today');
+  const dot = document.createElement('span');
+  dot.className = 'dot';
+  btn.appendChild(dot);
+  btn.addEventListener('click', () => selectDay(day));
+  nav.appendChild(btn);
+
+  const panel = document.createElement('div');
+  panel.className = 'day-panel';
+  panel.dataset.day = day;
+
+  SCHEDULE[day].forEach(lesson => {
+    const card = document.createElement('div');
+    card.className = 'pair';
+    if (lesson.materials && lesson.materials.length) card.classList.add('has-materials');
+
+    const head = document.createElement('div');
+    head.className = 'pair-head';
+    head.innerHTML = `
+      <div class="pair-num">
+        <span class="roman">${ROMAN[lesson.pair]}</span>
+        <span class="time">${TIME[lesson.pair]}</span>
+      </div>
+      <div class="pair-body">
+        <p class="subject">${lesson.subject}</p>
+        <div class="meta"><span class="type">${lesson.type}</span>${lesson.teacher ? lesson.teacher : ''}</div>
+        ${lesson.extra ? `<div class="extra">${lesson.extra}</div>` : ''}
+      </div>
+      <div class="toggle">
+        <span class="folder-count">${lesson.materials && lesson.materials.length ? lesson.materials.length : '—'}</span>
+        <span class="chev">›</span>
+      </div>
+    `;
+    head.addEventListener('click', () => card.classList.toggle('open'));
+
+    const materials = document.createElement('div');
+    materials.className = 'materials';
+    const inner = document.createElement('div');
+    inner.className = 'materials-inner';
+    if (lesson.materials && lesson.materials.length) {
+      const ul = document.createElement('ul');
+      lesson.materials.forEach(m => {
+        const li = document.createElement('li');
+        if (m.url) {
+          const isZoomMeet = /zoom|meet\.google/.test(m.url);
+          const icon = isZoomMeet ? '🎥' : /drive\.google/.test(m.url) ? '💾' : /t\.me/.test(m.url) ? '💬' : /\.pdf$/i.test(m.url) ? '📄' : '🔗';
+          li.innerHTML = `<a href="${m.url}" target="_blank" rel="noopener"><span class="ico">${icon}</span>${m.label}</a>`;
+        } else {
+          li.innerHTML = `<span class="file-badge"><span class="ico">📄</span>${m.label}<span class="chat-tag">у чаті</span></span>`;
+        }
+        ul.appendChild(li);
+      });
+      inner.appendChild(ul);
+    } else {
+      const empty = document.createElement('div');
+      empty.className = 'empty-folder';
+      empty.textContent = 'Поки що порожньо — сюди додамо книги, конспекти й посилання на Google Диск.';
+      inner.appendChild(empty);
+    }
+    materials.appendChild(inner);
+
+    card.appendChild(head);
+    card.appendChild(materials);
+    panel.appendChild(card);
+  });
+
+  panels.appendChild(panel);
+});
+
+function selectDay(day){
+  document.querySelectorAll('nav.days button').forEach(b => b.classList.toggle('active', b.dataset.day === day));
+  document.querySelectorAll('.day-panel').forEach(p => p.classList.toggle('active', p.dataset.day === day));
+}
+
+selectDay(todayName && days.includes(todayName) ? todayName : days[0]);
+
+// max-height fix so transition works with dynamic content
+const style = document.createElement('style');
+style.textContent = `.pair.open .materials{ max-height: 600px; }`;
+document.head.appendChild(style);
+
+// "today" indicator text
+const nowText = document.getElementById('nowText');
+if (todayName) {
+  nowText.textContent = todayName;
+} else {
+  nowText.textContent = "вихідний";
+}
+
+</script>
+</body>
+</html>
