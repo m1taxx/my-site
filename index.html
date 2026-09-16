@@ -205,6 +205,97 @@
     letter-spacing:0.05em;
   }
 
+  .teacher-picker{
+    display:flex;
+    flex-wrap:wrap;
+    gap:6px;
+    margin:2px 0 8px;
+  }
+  .teacher-pill{
+    font-family:'JetBrains Mono', monospace;
+    font-size:11.5px;
+    color:var(--ink-soft);
+    background:var(--paper);
+    border:1px solid var(--border);
+    border-radius:20px;
+    padding:5px 12px;
+    cursor:pointer;
+    transition:all var(--transition);
+  }
+  .teacher-pill:hover{
+    border-color:var(--teal);
+    color:var(--teal);
+  }
+  .teacher-pill.active{
+    background:var(--teal);
+    border-color:var(--teal);
+    color:#fff;
+    font-weight:500;
+  }
+  .teacher-pill .no-link-dot{
+    opacity:0.5;
+  }
+  .subgroup-tag{
+    display:inline-block;
+    font-family:'JetBrains Mono', monospace;
+    font-size:10.5px;
+    color:var(--amber);
+    background:var(--amber-soft);
+    padding:2px 8px;
+    border-radius:6px;
+    margin-bottom:6px;
+    font-weight:500;
+  }
+  .active-teacher-link{
+    margin-bottom:8px;
+  }
+  .no-link-note{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    color:var(--ink-faint);
+    font-size:13px;
+    padding:10px 12px;
+    border:1.5px dashed var(--border);
+    border-radius:10px;
+    margin-bottom:8px;
+  }
+  .group-switch{
+    display:flex;
+    gap:4px;
+    background:var(--card);
+    border:1px solid var(--border);
+    border-radius:12px;
+    padding:4px;
+    margin-bottom:20px;
+    width:fit-content;
+    position:relative;
+    z-index:1;
+  }
+  .group-switch button{
+    font-family:'Poppins', sans-serif;
+    font-size:13px;
+    font-weight:500;
+    color:var(--ink-faint);
+    background:none;
+    border:none;
+    padding:8px 16px;
+    border-radius:8px;
+    cursor:pointer;
+    transition:all var(--transition);
+  }
+  .group-switch button.active{
+    background:var(--teal);
+    color:#fff;
+  }
+  .group-note{
+    font-size:12.5px;
+    color:var(--ink-faint);
+    margin:-12px 0 20px;
+    position:relative;
+    z-index:1;
+  }
+
   .current-pair-card{
     background:var(--card);
     border:1.5px solid var(--border);
@@ -589,6 +680,103 @@
   .materials-inner{
     padding:16px 20px 18px 20px;
   }
+  .reveal-card{
+    border-left:3px solid var(--kind-color, var(--teal));
+    background:var(--kind-bg, var(--teal-soft));
+    border-radius:12px;
+    padding:16px 16px 16px 14px;
+  }
+  .reveal-topbar{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:8px;
+    margin-bottom:10px;
+  }
+  .reveal-badge{
+    font-family:'JetBrains Mono', monospace;
+    font-size:10.5px;
+    font-weight:700;
+    letter-spacing:0.04em;
+    text-transform:uppercase;
+    color:var(--kind-color, var(--teal));
+    background:var(--card);
+    border:1px solid var(--kind-color, var(--teal));
+    padding:4px 9px;
+    border-radius:8px;
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+  }
+  .reveal-badge .sep{opacity:0.5;}
+  .reveal-subject{
+    font-family:'Poppins', sans-serif;
+    font-size:17px;
+    font-weight:700;
+    color:var(--ink);
+    margin:0 0 4px;
+    letter-spacing:-0.01em;
+  }
+  .reveal-teacher{
+    font-size:13.5px;
+    color:var(--ink-soft);
+    margin-bottom:2px;
+  }
+  .reveal-hours{
+    font-family:'JetBrains Mono', monospace;
+    font-size:11.5px;
+    color:var(--ink-faint);
+    margin-bottom:14px;
+  }
+  .reveal-actions{
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px;
+  }
+  .reveal-btn{
+    display:inline-flex;
+    align-items:center;
+    gap:7px;
+    font-family:'Poppins', sans-serif;
+    font-size:13px;
+    font-weight:600;
+    color:#fff;
+    background:var(--kind-color, var(--teal));
+    border:none;
+    padding:9px 14px;
+    border-radius:10px;
+    text-decoration:none;
+    cursor:pointer;
+    transition:all var(--transition);
+  }
+  .reveal-btn:hover{
+    filter:brightness(1.1);
+    transform:translateY(-1px);
+  }
+  .reveal-btn.secondary{
+    background:var(--card);
+    color:var(--ink-soft);
+    border:1px solid var(--border);
+  }
+  .reveal-btn.secondary:hover{
+    border-color:var(--kind-color, var(--teal));
+    color:var(--kind-color, var(--teal));
+  }
+  .reveal-btn.no-link{
+    background:var(--card);
+    color:var(--ink-faint);
+    border:1.5px dashed var(--border);
+    cursor:default;
+  }
+  .reveal-btn.no-link:hover{
+    filter:none;
+    transform:none;
+  }
+  .reveal-empty{
+    font-size:13px;
+    color:var(--ink-faint);
+    padding:4px 0 0;
+  }
   .materials ul{
     list-style:none;
     margin:0;
@@ -734,8 +922,8 @@
     <header class="top">
       <div>
         <span class="group-tag">ФКНК · 1 курс · прикладна математика</span>
-        <h1>Група К-10</h1>
-        <div class="sub">1 семестр, 2026–2027 н.р.</div>
+        <h1 id="mainTitle">К-10 та К-11</h1>
+        <div class="sub">1 семестр, 2026–2027 н.р. · розклад спільний для обох груп</div>
       </div>
       <div class="now-card" id="nowCard">
         <span class="now-label">сьогодні</span>
@@ -811,7 +999,10 @@ const L = {
   zoomRabanovych: "https://us04web.zoom.us/j/77750879149?pwd=b25aARo3wCUbq6lVrINClTp41WV7Nr.1",
   driveAlgebra: "https://drive.google.com/drive/folders/19cO5l7x1nQXux0yWxCsz8jgFweLkZreu",
   zoomDavydov: "https://us04web.zoom.us/j/77671147346?pwd=JVB0oJzf9yEbErf5xVLaFD6hApkJvA.1",
-  zoomDoronina: "https://us05web.zoom.us/j/85961056585?pwd=sRaaaqE9BYhTl5bF1I9sO8aPK89jbs.1"
+  zoomDoronina: "https://us05web.zoom.us/j/85961056585?pwd=sRaaaqE9BYhTl5bF1I9sO8aPK89jbs.1",
+  zoomGulianytskyi: "https://us04web.zoom.us/j/74556749396?pwd=hvrDS9VgcBmA62qhrjEkFrnOOVavwM.1",
+  zoomRabanovychPr: "https://us04web.zoom.us/j/73255785726?pwd=dsO2lbSuIXzPBJUbMfBHdKoeOsSnfO.1",
+  zoomBraganets: "https://us04web.zoom.us/j/76479733144?pwd=d0JOQ3ZxL3F6WUhad25xTi9NYmV4Zz09"
   
 };
 
@@ -820,7 +1011,6 @@ const SCHEDULE = {
     { pair:1, subject:"Вступ до університетських студій", type:"лек · 28 год", teacher:"доц. Набока С.В.", materials:[
       { label : "Zoom (лекція)", url:L.zoomNaboka },
     ] },
-    
     { pair:2, subject:"Програмування", type:"лек · 20 год + конс. 2 год", teacher:"ас. Веклич Р.М.", materials:[
       { label:"Zoom (лекція)", url:L.zoomVeklichLek },
       { label:"Google Диск", url:L.driveVeklich }
@@ -850,12 +1040,18 @@ const SCHEDULE = {
     { pair:4, subject:"ОНС", type:"16 год", teacher:"", materials:[] }
   ],
   "Середа": [
-    { pair:1, subject:"Програмування", type:"лаб · 22 год", teacher:"ас. Веклич Р.А.", materials:[
-      { label:"Zoom (практика)", url:L.zoomVeklichPr },
+    { pair:1, subject:"Програмування", type:"лаб · 22 год", teacherOptions:[
+        { name:"ас. Єфремов М.С.", url:null },
+        { name:"ас. Скибицький Н.М.", url:null },
+        { name:"ас. Веклич Р.А.", url:L.zoomVeklichPr }
+      ], materials:[
       { label:"Google Диск", url:L.driveVeklich }
     ] },
-    { pair:2, subject:"Алгебра та геометрія", type:"пр · 22 год", teacher:"ас. Давидов О.О.", materials:[
-      { label:"Zoom", url:L.zoomDavydov },
+    { pair:2, subject:"Алгебра та геометрія", type:"пр · 22 год", teacherOptions:[
+        { name:"доц. Рабанович В.Я.", url:L.zoomRabanovychPr },
+        { name:"ас. Браганець О.А.", url:L.zoomBraganets },
+        { name:"ас. Давидов О.О.", url:L.zoomDavydov }
+      ], materials:[
       { label:"Google Диск", url:L.driveAlgebra },
       { label:"Домашнє завдання (текст)", url:"materials/algebra-dz.pdf" }
     ] },
@@ -867,41 +1063,101 @@ const SCHEDULE = {
     ] }
   ],
   "Четвер": [
-    { pair:1, subject:"Дискретна математика", type:"пр · 22 год", teacher:"ас. Самойлов", materials:[
-      { label:"Google Meet (практика)", url:L.meetSamoylov },
+    { pair:1, subject:"Дискретна математика", groupNote:"1 пг, 2 пг", type:"пр · 22 год", teacherOptions:[
+        { name:"доц. Трохимчук Р.М.", url:L.zoomTrokhymchuk },
+        { name:"ас. Самойлов", url:L.meetSamoylov }
+      ], materials:[
       { label:"Youtube", url:L.dmBook },
       { label:"Дискретна математика (текст)", url:"materials/discrete-math.pdf" }
     ] },
-    { pair:2, subject:"Математичний аналіз", type:"пр · 28 год", teacher:"доц. Рубльов Б.В.", materials:[
-      { label:"Zoom", url:L.zoomRublyov },
+    { pair:1, subject:"Математичний аналіз", groupNote:"3 пг", type:"пр · 28 год", teacher:"доц. Гуляницький А.Л.", materials:[
+      { label:"Zoom", url:L.zoomGulianytskyi },
+      { label:"Методичка (текст)", url:"materials/matan-metodichka.pdf" }
+    ] },
+    { pair:2, subject:"Математичний аналіз", type:"пр · 28 год", teacherOptions:[
+        { name:"доц. Рубльов Б.В.", url:L.zoomRublyov },
+        { name:"доц. Гуляницький", url:L.zoomGulianytskyi }
+      ], materials:[
       { label:"Методичка (текст)", url:"materials/matan-metodichka.pdf" },
       { label :"Конспект (лек.)", url:"materials/rublov_lect.pdf" }
     ] },
-    { pair:3, subject:"Алгебра та геометрія", type:"пр · 28 год", teacher:"ас. Давидов О.О.", materials:[
-      { label:"Zoom", url:L.zoomDavydov },
+    { pair:3, subject:"Алгебра та геометрія", type:"пр · 28 год", teacherOptions:[
+        { name:"доц. Рабанович В.Я.", url:L.zoomRabanovychPr },
+        { name:"ас. Браганець О.А.", url:L.zoomBraganets },
+        { name:"ас. Давидов О.О.", url:L.zoomDavydov }
+      ], materials:[
       { label:"Google Диск", url:L.driveAlgebra },
       { label:"Домашнє завдання (текст)", url:"materials/algebra-dz.pdf" }
     ] },
     { pair:4, subject:"ОНС", type:"16 год", teacher:"", materials:[] }
   ],
   "П'ятниця": [
-    { pair:1, subject:"Математичний аналіз", type:"пр · 28 год", teacher:"проф. Рубльов Б.В.", materials:[
-      { label:"Zoom", url:L.zoomRublyov },
+    { pair:1, subject:"Математичний аналіз", groupNote:"1 пг, 2 пг", type:"пр · 28 год", teacherOptions:[
+        { name:"проф. Рубльов Б.В.", url:L.zoomRublyov },
+        { name:"доц. Гуляницький", url:L.zoomGulianytskyi }
+      ], materials:[
       { label:"Методичка (текст)", url:"materials/matan-metodichka.pdf" },
       { label :"Конспект (лек.)", url:"materials/rublov_lect.pdf" }
     ] },
-    { pair:2, subject:"Іноземна мова", type:"пр · 24 год", teacher:"Дороніна", materials:[
-      { label:"Zoom — English ", url:L.zoomDoronina }
+    { pair:1, subject:"Дискретна математика", groupNote:"3 пг", type:"пр · 22 год", teacher:"доц. Трохимчук Р.М.", materials:[
+      { label:"Zoom", url:L.zoomTrokhymchuk },
+      { label:"Дискретна математика (текст)", url:"materials/discrete-math.pdf" }
     ] },
-    { pair:3, subject:"Іноземна мова", type:"пр · 28 год", teacher:"Дороніна", materials:[
-      { label:"Zoom — English ", url:L.zoomDoronina }
-    ] },
+    { pair:2, subject:"Іноземна мова", type:"пр · 24 год", teacherOptions:[
+        { name:"Каленченко О.О.", url:null },
+        { name:"Дороніна", url:L.zoomDoronina },
+        { name:"Паламарчук", url:null }
+      ], materials:[] },
+    { pair:2, subject:"Математичний аналіз", type:"пр · 2 год", teacherOptions:[
+        { name:"проф. Рубльов Б.В.", url:L.zoomRublyov },
+        { name:"проф. Номіровський Д.А.", url:null },
+        { name:"доц. Гуляницький", url:L.zoomGulianytskyi }
+      ], materials:[] },
+    { pair:3, subject:"Іноземна мова", type:"пр · 28 год", teacherOptions:[
+        { name:"Каленченко О.О.", url:null },
+        { name:"Дороніна", url:L.zoomDoronina },
+        { name:"Паламарчук", url:null }
+      ], materials:[] },
     { pair:4, subject:"Математичний аналіз", type:"пр · 28 год (одна з підгруп)", teacher:"проф. Номіровський А.Д.", materials:[] }
   ]
 };
 
 const ROMAN = {1:"I",2:"II",3:"III",4:"IV"};
 const days = Object.keys(SCHEDULE);
+
+const KIND = {
+  lecture: { label:"Лекція",      color:"#6366f1", bg:"rgba(99,102,241,0.10)" },
+  practice:{ label:"Практика",    color:"#06b6d4", bg:"rgba(6,182,212,0.10)"  },
+  lab:     { label:"Лабораторна", color:"#f59e0b", bg:"rgba(245,158,11,0.10)" },
+  lang:    { label:"Іноземна мова", color:"#a855f7", bg:"rgba(168,85,247,0.10)" },
+  ons:     { label:"ОНС",         color:"#ec4899", bg:"rgba(236,72,153,0.10)" },
+  other:   { label:"Заняття",     color:"#6b7280", bg:"rgba(107,114,128,0.10)" }
+};
+
+function getKind(lesson){
+  if (/Іноземна мова/i.test(lesson.subject)) return 'lang';
+  if (/^ОНС/i.test(lesson.subject)) return 'ons';
+  if (/^лек/i.test(lesson.type)) return 'lecture';
+  if (/^лаб/i.test(lesson.type)) return 'lab';
+  if (/^пр/i.test(lesson.type)) return 'practice';
+  return 'other';
+}
+
+function getHours(lesson){
+  const m = lesson.type.match(/(\d+[^)]*год[^)]*)/i);
+  return m ? m[1].trim() : lesson.type;
+}
+
+function iconFor(url){
+  if (!url) return '🔒';
+  if (/zoom/.test(url)) return '🎥';
+  if (/meet\.google/.test(url)) return '📹';
+  if (/drive\.google/.test(url)) return '💾';
+  if (/t\.me/.test(url)) return '💬';
+  if (/youtube/.test(url)) return '▶️';
+  if (/\.pdf$/i.test(url)) return '📄';
+  return '🔗';
+}
 
 // JS getDay(): 0 Sun ... 6 Sat -> map to our day names (Mon-Fri)
 const jsDayToName = {1:"Понеділок",2:"Вівторок",3:"Середа",4:"Четвер",5:"П'ятниця"};
@@ -928,22 +1184,27 @@ days.forEach((day, i) => {
   SCHEDULE[day].forEach(lesson => {
     const card = document.createElement('div');
     card.className = 'pair';
-    if (lesson.materials && lesson.materials.length) card.classList.add('has-materials');
+    const hasContent = (lesson.materials && lesson.materials.length) || (lesson.teacherOptions && lesson.teacherOptions.length);
+    if (hasContent) card.classList.add('has-materials');
 
     const head = document.createElement('div');
     head.className = 'pair-head';
+    const teacherLineHtml = lesson.teacherOptions
+      ? '' // rendered separately as pills below the subject
+      : (lesson.teacher ? lesson.teacher : '');
     head.innerHTML = `
       <div class="pair-num">
         <span class="roman">${ROMAN[lesson.pair]}</span>
         <span class="time">${TIME[lesson.pair].display}</span>
       </div>
       <div class="pair-body">
+        ${lesson.groupNote ? `<span class="subgroup-tag">${lesson.groupNote}</span>` : ''}
         <p class="subject">${lesson.subject}</p>
-        <div class="meta"><span class="type">${lesson.type}</span>${lesson.teacher ? lesson.teacher : ''}</div>
+        <div class="meta"><span class="type">${lesson.type}</span>${teacherLineHtml}</div>
         ${lesson.extra ? `<div class="extra">${lesson.extra}</div>` : ''}
       </div>
       <div class="toggle">
-        <span class="folder-count">${lesson.materials && lesson.materials.length ? lesson.materials.length : '—'}</span>
+        <span class="folder-count">${lesson.teacherOptions ? '👥' : (lesson.materials && lesson.materials.length ? lesson.materials.length : '—')}</span>
         <span class="chev">›</span>
       </div>
     `;
@@ -953,26 +1214,83 @@ days.forEach((day, i) => {
     materials.className = 'materials';
     const inner = document.createElement('div');
     inner.className = 'materials-inner';
-    if (lesson.materials && lesson.materials.length) {
-      const ul = document.createElement('ul');
-      lesson.materials.forEach(m => {
-        const li = document.createElement('li');
-        if (m.url) {
-          const isZoomMeet = /zoom|meet\.google/.test(m.url);
-          const icon = isZoomMeet ? '🎥' : /drive\.google/.test(m.url) ? '💾' : /t\.me/.test(m.url) ? '💬' : /\.pdf$/i.test(m.url) ? '📄' : '🔗';
-          li.innerHTML = `<a href="${m.url}" target="_blank" rel="noopener"><span class="ico">${icon}</span>${m.label}</a>`;
-        } else {
-          li.innerHTML = `<span class="file-badge"><span class="ico">📄</span>${m.label}<span class="chat-tag">у чаті</span></span>`;
-        }
-        ul.appendChild(li);
-      });
-      inner.appendChild(ul);
-    } else {
-      const empty = document.createElement('div');
-      empty.className = 'empty-folder';
-      empty.textContent = 'Поки що порожньо — сюди додамо книги, конспекти й посилання на Google Диск.';
-      inner.appendChild(empty);
+
+    const kind = KIND[getKind(lesson)];
+
+    const reveal = document.createElement('div');
+    reveal.className = 'reveal-card';
+    reveal.style.setProperty('--kind-color', kind.color);
+    reveal.style.setProperty('--kind-bg', kind.bg);
+
+    const topbar = document.createElement('div');
+    topbar.className = 'reveal-topbar';
+    topbar.innerHTML = `<span class="reveal-badge">${kind.label}${lesson.groupNote ? `<span class="sep">·</span>${lesson.groupNote.toUpperCase()}` : ''}</span>`;
+    reveal.appendChild(topbar);
+
+    const subjectEl = document.createElement('p');
+    subjectEl.className = 'reveal-subject';
+    subjectEl.textContent = lesson.subject;
+    reveal.appendChild(subjectEl);
+
+    if (lesson.teacher) {
+      const teacherEl = document.createElement('div');
+      teacherEl.className = 'reveal-teacher';
+      teacherEl.textContent = lesson.teacher;
+      reveal.appendChild(teacherEl);
     }
+
+    const hoursEl = document.createElement('div');
+    hoursEl.className = 'reveal-hours';
+    hoursEl.textContent = getHours(lesson);
+    reveal.appendChild(hoursEl);
+
+    const actions = document.createElement('div');
+    actions.className = 'reveal-actions';
+
+    // teacher options become their own connect-buttons (one per teacher)
+    if (lesson.teacherOptions && lesson.teacherOptions.length) {
+      lesson.teacherOptions.forEach(opt => {
+        if (opt.url) {
+          const a = document.createElement('a');
+          a.className = 'reveal-btn';
+          a.href = opt.url;
+          a.target = '_blank';
+          a.rel = 'noopener';
+          a.innerHTML = `<span>${iconFor(opt.url)}</span>${opt.name.replace(/^(доц\.|проф\.|ас\.)\s*/i,'')}`;
+          actions.appendChild(a);
+        } else {
+          const b = document.createElement('span');
+          b.className = 'reveal-btn no-link';
+          b.title = 'Посилання поки немає';
+          b.innerHTML = `<span>🔒</span>${opt.name.replace(/^(доц\.|проф\.|ас\.)\s*/i,'')}`;
+          actions.appendChild(b);
+        }
+      });
+    }
+
+    // regular materials (drive, pdf, book, single-teacher zoom, etc.)
+    if (lesson.materials && lesson.materials.length) {
+      lesson.materials.forEach(m => {
+        const a = document.createElement('a');
+        a.className = 'reveal-btn secondary';
+        a.href = m.url;
+        a.target = '_blank';
+        a.rel = 'noopener';
+        a.innerHTML = `<span>${iconFor(m.url)}</span>${m.label}`;
+        actions.appendChild(a);
+      });
+    }
+
+    if (!actions.children.length) {
+      const empty = document.createElement('div');
+      empty.className = 'reveal-empty';
+      empty.textContent = 'Поки що порожньо — матеріали додамо пізніше.';
+      reveal.appendChild(empty);
+    } else {
+      reveal.appendChild(actions);
+    }
+
+    inner.appendChild(reveal);
     materials.appendChild(inner);
 
     card.appendChild(head);
@@ -1002,6 +1320,8 @@ if (todayName) {
 } else {
   nowText.textContent = "вихідний";
 }
+
+const mainTitle = document.getElementById('mainTitle');
 
 // Current pair card logic
 function timeStrToMinutes(timeStr) {
@@ -1082,3 +1402,4 @@ updateCurrentPairCard();
 </script>
 </body>
 </html>
+
