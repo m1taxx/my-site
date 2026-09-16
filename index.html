@@ -408,6 +408,7 @@ const TIME = {
 // materials: array of {label, url}. Empty for now — links get added here later.
 // shared links, so they're only defined once
 const L = {
+  zoomNaboka :"https://us04web.zoom.us/j/9507579405?pwd=MUtrUDRtMWN6NGl0eHdPZ1ZvM3ZvUT09&omn",
   zoomRublyov: "https://us04web.zoom.us/j/2409434137?pwd=RTRKYmNLU0FlTGdVaVp4ZlBIRE12UT09",
   zoomTrokhymchuk: "https://knu-ua.zoom.us/j/87542077807?pwd=a3U1eC9tcWNZZnFyZTBOY0VyanBuUT09",
   dmBook: "https://t.me/c/4362028786/7",
@@ -422,7 +423,10 @@ const L = {
 
 const SCHEDULE = {
   "Понеділок": [
-    { pair:1, subject:"Вступ до університетських студій", type:"лек · 28 год", teacher:"доц. Набока С.В.", materials:[] },
+    { pair:1, subject:"Вступ до університетських студій", type:"лек · 28 год", teacher:"доц. Набока С.В.", materials:[
+      { label : "Zoom (лекція)", url:L.zoomNaboka },
+    ] },
+    
     { pair:2, subject:"Програмування", type:"лек · 20 год + конс. 2 год", teacher:"ас. Веклич Р.М.", materials:[
       { label:"Zoom (лекція)", url:L.zoomVeklichLek },
       { label:"Google Диск", url:L.driveVeklich }
