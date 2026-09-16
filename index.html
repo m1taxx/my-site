@@ -411,14 +411,15 @@ const L = {
   zoomNaboka :"https://us04web.zoom.us/j/9507579405?pwd=MUtrUDRtMWN6NGl0eHdPZ1ZvM3ZvUT09&omn",
   zoomRublyov: "https://us04web.zoom.us/j/2409434137?pwd=RTRKYmNLU0FlTGdVaVp4ZlBIRE12UT09",
   zoomTrokhymchuk: "https://knu-ua.zoom.us/j/87542077807?pwd=a3U1eC9tcWNZZnFyZTBOY0VyanBuUT09",
-  dmBook: "https://t.me/c/4362028786/7",
+  dmBook: "https://youtube.com/playlist?list=PLwkkMSKF2p1b4hbROQY-5q1tGDIb9J8GY&si=wAebLBIcezI5cDKp",
   meetSamoylov: "https://meet.google.com/aiy-ohvn-hwp",
   zoomVeklichLek: "https://knu-ua.zoom.us/j/83875785456?pwd=fkgaBRrkj2ADWGsO6zU1EbMp3X5nnI.1",
   zoomVeklichPr: "https://knu-ua.zoom.us/j/85962736513?pwd=Rg40b0zDJbLgdkNb3hbq4p781lvD8O.1",
   driveVeklich: "https://drive.google.com/drive/folders/1SNeCorCzJO5WXzOGCDc8V9FYWQmqmClw",
   zoomRabanovych: "https://us04web.zoom.us/j/77750879149?pwd=b25aARo3wCUbq6lVrINClTp41WV7Nr.1",
   driveAlgebra: "https://drive.google.com/drive/folders/19cO5l7x1nQXux0yWxCsz8jgFweLkZreu",
-  zoomDavydov: "https://us04web.zoom.us/j/77671147346?pwd=JVB0oJzf9yEbErf5xVLaFD6hApkJvA.1"
+  zoomDavydov: "https://us04web.zoom.us/j/77671147346?pwd=JVB0oJzf9yEbErf5xVLaFD6hApkJvA.1",
+  zoomDoronina: "https://us05web.zoom.us/j/85961056585?pwd=sRaaaqE9BYhTl5bF1I9sO8aPK89jbs.1"
 };
 
 const SCHEDULE = {
@@ -440,7 +441,7 @@ const SCHEDULE = {
   "Вівторок": [
     { pair:1, subject:"Дискретна математика", type:"лек · 20 год + конс. 2 год", teacher:"доц. Трохимчук Р.М.", materials:[
       { label:"Zoom (лекція)", url:L.zoomTrokhymchuk },
-      { label:"Конспект / книга", url:L.dmBook },
+      { label:"Youtube", url:L.dmBook },
       { label:"Дискретна математика (текст)", url:"materials/discrete-math.pdf" }
     ] },
     { pair:2, subject:"Математичний аналіз 1", type:"лек · 28 год", teacher:"проф. Рубльов Б.В.", materials:[
@@ -472,7 +473,7 @@ const SCHEDULE = {
   "Четвер": [
     { pair:1, subject:"Дискретна математика", type:"пр · 22 год", teacher:"ас. Самойлов", materials:[
       { label:"Google Meet (практика)", url:L.meetSamoylov },
-      { label:"Конспект / книга", url:L.dmBook },
+      { label:"Youtube", url:L.dmBook },
       { label:"Дискретна математика (текст)", url:"materials/discrete-math.pdf" }
     ] },
     { pair:2, subject:"Математичний аналіз", type:"пр · 28 год", teacher:"доц. Рубльов Б.В.", materials:[
@@ -492,9 +493,11 @@ const SCHEDULE = {
       { label:"Методичка (текст)", url:"materials/matan-metodichka.pdf" }
     ] },
     { pair:2, subject:"Іноземна мова", type:"пр · 24 год", teacher:"Дороніна", extra:"+ Математичний аналіз, пр · 2 год — проф. Рубльов Б.В.", materials:[
-      { label:"Zoom — Мат. аналіз (Рубльов)", url:L.zoomRublyov }
+      { label:"Zoom — English ", url:L.zoomDoronina }
     ] },
-    { pair:3, subject:"Іноземна мова", type:"пр · 28 год", teacher:"Дороніна", materials:[] },
+    { pair:3, subject:"Іноземна мова", type:"пр · 28 год", teacher:"Дороніна", materials:[
+      { label:"Zoom — English ", url:L.zoomDoronina }
+    ] },
     { pair:4, subject:"Математичний аналіз", type:"пр · 28 год (одна з підгруп)", teacher:"проф. Номіровський А.Д.", materials:[] }
   ]
 };
