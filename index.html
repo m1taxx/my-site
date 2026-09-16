@@ -710,6 +710,32 @@
     }
   }
 
+  .beer-close-btn{
+    position:absolute;
+    top:24px;
+    right:24px;
+    width:40px;
+    height:40px;
+    border:none;
+    background:var(--card);
+    border:1px solid var(--border);
+    border-radius:12px;
+    color:var(--ink-soft);
+    font-size:24px;
+    cursor:pointer;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    transition:all var(--transition);
+    z-index:10;
+  }
+
+  .beer-close-btn:hover{
+    border-color:var(--teal);
+    color:var(--teal);
+    background:var(--teal-soft);
+  }
+
   .beer-emoji{
     font-size:150px;
     animation:beerBounce 2s ease-in-out infinite;
@@ -790,6 +816,13 @@
     .beer-text span{
       font-size:20px;
     }
+    .beer-close-btn{
+      width:36px;
+      height:36px;
+      font-size:20px;
+      top:16px;
+      right:16px;
+    }
   }
 </style>
 </head>
@@ -862,6 +895,7 @@
   </div>
 
   <div class="beer-screen" id="beerScreen">
+    <button class="beer-close-btn" id="beerCloseBtn">×</button>
     <div class="beer-emoji">🍺</div>
     <div class="beer-text">
       На сьогодни все!
@@ -983,6 +1017,13 @@ const todayName = jsDayToName[new Date().getDay()] || null;
 
 const nav = document.getElementById('daysNav');
 const panels = document.getElementById('panels');
+const beerScreen = document.getElementById('beerScreen');
+const beerCloseBtn = document.getElementById('beerCloseBtn');
+
+// Close beer screen on button click
+beerCloseBtn.addEventListener('click', () => {
+  beerScreen.classList.remove('active');
+});
 
 days.forEach((day, i) => {
   const btn = document.createElement('button');
@@ -998,213 +1039,182 @@ days.forEach((day, i) => {
   const panel = document.createElement('div');
   panel.className = 'day-panel';
   panel.dataset.day = day;
+  panel.innerHTML = '<div class="pairs-container"></div>';
 
-  SCHEDULE[day].forEach(lesson => {
-    const card = document.createElement('div');
-    card.className = 'pair';
-    if (lesson.materials && lesson.materials.length) card.classList.add('has-materials');
+  SCHEDULE[day].forEach(pair => {
+    const pairEl = document.createElement('div');
+    pairEl.className = 'pair';
+    if (pair.materials.length) pairEl.classList.add('has-materials');
 
     const head = document.createElement('div');
     head.className = 'pair-head';
-    head.innerHTML = `
-      <div class="pair-num">
-        <span class="roman">${ROMAN[lesson.pair]}</span>
-        <span class="time">${TIME[lesson.pair].display}</span>
-      </div>
-      <div class="pair-body">
-        <p class="subject">${lesson.subject}</p>
-        <div class="meta"><span class="type">${lesson.type}</span>${lesson.teacher ? lesson.teacher : ''}</div>
-        ${lesson.extra ? `<div class="extra">${lesson.extra}</div>` : ''}
-      </div>
-      <div class="toggle">
-        <span class="folder-count">${lesson.materials && lesson.materials.length ? lesson.materials.length : '—'}</span>
-        <span class="chev">›</span>
+
+    const num = document.createElement('div');
+    num.className = 'pair-num';
+    num.innerHTML = `<span class="roman">${ROMAN[pair.pair]}</span><span class="time">${TIME[pair.pair].display}</span>`;
+
+    const body = document.createElement('div');
+    body.className = 'pair-body';
+    body.innerHTML = `
+      <p class="subject">${pair.subject}</p>
+      <div class="meta">
+        <span class="type">${pair.type}</span>
+        <span class="teacher">${pair.teacher}</span>
       </div>
     `;
-    head.addEventListener('click', () => card.classList.toggle('open'));
+
+    const toggle = document.createElement('div');
+    toggle.className = 'toggle';
+    toggle.innerHTML = `<span>${pair.materials.length ? pair.materials.length : ''}</span><span class="chev">›</span>`;
+    if (!pair.materials.length) toggle.style.color = 'transparent';
+
+    const folderCount = document.createElement('span');
+    folderCount.className = 'folder-count';
+    folderCount.textContent = pair.materials.length;
+
+    head.appendChild(num);
+    head.appendChild(body);
+    if (pair.materials.length) head.appendChild(folderCount);
+    head.appendChild(toggle);
 
     const materials = document.createElement('div');
     materials.className = 'materials';
-    const inner = document.createElement('div');
-    inner.className = 'materials-inner';
-    if (lesson.materials && lesson.materials.length) {
+
+    if (pair.materials.length) {
+      const inner = document.createElement('div');
+      inner.className = 'materials-inner';
+
       const ul = document.createElement('ul');
-      lesson.materials.forEach(m => {
+      pair.materials.forEach(m => {
         const li = document.createElement('li');
-        if (m.url) {
-          const isZoomMeet = /zoom|meet\.google/.test(m.url);
-          const icon = isZoomMeet ? '🎥' : /drive\.google/.test(m.url) ? '💾' : /t\.me/.test(m.url) ? '💬' : /\.pdf$/i.test(m.url) ? '📄' : '🔗';
-          li.innerHTML = `<a href="${m.url}" target="_blank" rel="noopener"><span class="ico">${icon}</span>${m.label}</a>`;
-        } else {
-          li.innerHTML = `<span class="file-badge"><span class="ico">📄</span>${m.label}<span class="chat-tag">у чаті</span></span>`;
-        }
+        const a = document.createElement('a');
+        a.href = m.url;
+        a.target = '_blank';
+        a.innerHTML = `<span class="ico">↗</span><span>${m.label}</span>`;
+        li.appendChild(a);
         ul.appendChild(li);
       });
       inner.appendChild(ul);
+      materials.appendChild(inner);
     } else {
+      const inner = document.createElement('div');
+      inner.className = 'materials-inner';
       const empty = document.createElement('div');
       empty.className = 'empty-folder';
-      empty.textContent = 'Поки що порожньо — сюди додамо книги, конспекти й посилання на Google Диск.';
+      empty.innerHTML = '<em>Матеріалів немає</em>';
       inner.appendChild(empty);
+      materials.appendChild(inner);
     }
-    materials.appendChild(inner);
 
-    card.appendChild(head);
-    card.appendChild(materials);
-    panel.appendChild(card);
+    pairEl.appendChild(head);
+    pairEl.appendChild(materials);
+
+    head.addEventListener('click', () => {
+      pairEl.classList.toggle('open');
+      materials.style.maxHeight = pairEl.classList.contains('open') ? materials.scrollHeight + 'px' : '0';
+    });
+
+    panel.querySelector('.pairs-container').appendChild(pairEl);
   });
 
   panels.appendChild(panel);
 });
 
-function selectDay(day){
-  document.querySelectorAll('nav.days button').forEach(b => b.classList.toggle('active', b.dataset.day === day));
-  document.querySelectorAll('.day-panel').forEach(p => p.classList.toggle('active', p.dataset.day === day));
+// Select day
+function selectDay(day) {
+  // Update nav buttons
+  document.querySelectorAll('nav.days button').forEach(btn => btn.classList.remove('active'));
+  document.querySelector(`nav.days button[data-day="${day}"]`).classList.add('active');
+
+  // Update panels
+  document.querySelectorAll('.day-panel').forEach(p => p.classList.remove('active'));
+  document.querySelector(`.day-panel[data-day="${day}"]`).classList.add('active');
 }
 
-selectDay(todayName && days.includes(todayName) ? todayName : days[0]);
-
-// max-height fix so transition works with dynamic content
-const style = document.createElement('style');
-style.textContent = `.pair.open .materials{ max-height: 700px; }`;
-document.head.appendChild(style);
-
-// "today" indicator text
-const nowText = document.getElementById('nowText');
+// Init
 if (todayName) {
-  nowText.textContent = todayName;
+  selectDay(todayName);
 } else {
-  nowText.textContent = "вихідний";
+  selectDay(days[0]);
 }
 
-// Helper functions for time conversion
-function timeToMinutes(timeStr) {
-  const [h, m] = timeStr.split(':').map(Number);
-  return h * 60 + m;
-}
-
-function minutesToTime(mins) {
-  const h = Math.floor(mins / 60);
-  const m = mins % 60;
-  return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
-}
-
-// Get all pairs for today sorted by time
-function getTodayPairs() {
-  if (!todayName || !SCHEDULE[todayName]) return [];
-  return SCHEDULE[todayName].sort((a, b) => a.pair - b.pair);
-}
-
-// Get next pair starting time
-function getNextPairTime() {
+// Update current time and classes
+function updateTime() {
   const now = new Date();
-  const currentMins = now.getHours() * 60 + now.getMinutes();
-  const pairs = getTodayPairs();
-  
-  for (const pair of pairs) {
-    const startMins = timeToMinutes(TIME[pair.pair].start);
-    if (startMins > currentMins) return startMins;
-  }
-  return null;
-}
+  const hours = String(now.getHours()).padStart(2, '0');
+  const mins = String(now.getMinutes()).padStart(2, '0');
+  document.getElementById('nowText').textContent = `${hours}:${mins}`;
 
-// Create audio context for notification sound
-function playNotificationSound() {
-  try {
-    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-    const oscillator = audioContext.createOscillator();
-    const gain = audioContext.createGain();
-    
-    oscillator.connect(gain);
-    gain.connect(audioContext.destination);
-    
-    // Create a pleasant alert sound (two beeps)
-    oscillator.frequency.value = 800;
-    gain.gain.setValueAtTime(0.3, audioContext.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
-    
-    oscillator.start(audioContext.currentTime);
-    oscillator.stop(audioContext.currentTime + 0.1);
-    
-    // Second beep
-    const osc2 = audioContext.createOscillator();
-    osc2.connect(gain);
-    gain.gain.setValueAtTime(0.3, audioContext.currentTime + 0.15);
-    gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.25);
-    osc2.frequency.value = 1000;
-    osc2.start(audioContext.currentTime + 0.15);
-    osc2.stop(audioContext.currentTime + 0.25);
-  } catch (e) {
-    console.log('Audio notification not available');
-  }
-}
+  const todaySchedule = todayName ? SCHEDULE[todayName] : null;
+  let currentPair = null;
+  let nextStartTime = null;
 
-// Show beer screen when all classes end
-function checkIfAllClassesEnded() {
-  const pairs = getTodayPairs();
-  if (pairs.length === 0) return false;
-  
-  const lastPair = pairs[pairs.length - 1];
-  const lastEndTime = timeToMinutes(TIME[lastPair.pair].end);
-  const now = new Date();
-  const currentMins = now.getHours() * 60 + now.getMinutes();
-  
-  return currentMins >= lastEndTime;
-}
+  if (todaySchedule) {
+    for (const pair of todaySchedule) {
+      const [sh, sm] = TIME[pair.pair].start.split(':').map(Number);
+      const [eh, em] = TIME[pair.pair].end.split(':').map(Number);
+      const startMin = sh * 60 + sm;
+      const endMin = eh * 60 + em;
+      const nowMin = now.getHours() * 60 + now.getMinutes();
 
-function updateBeerScreen() {
-  const beerScreen = document.getElementById('beerScreen');
-  if (checkIfAllClassesEnded()) {
-    beerScreen.classList.add('active');
-  } else {
-    beerScreen.classList.remove('active');
-  }
-}
+      if (nowMin >= startMin && nowMin < endMin) {
+        currentPair = pair;
+        break;
+      }
+    }
 
-// Check for notification 10 minutes before next pair
-let lastNotificationTime = -1;
-
-function checkForNotification() {
-  const nextPairTime = getNextPairTime();
-  if (nextPairTime === null) {
-    updateBeerScreen();
-    return;
-  }
-  
-  const now = new Date();
-  const currentMins = now.getHours() * 60 + now.getMinutes();
-  const minsBefore = nextPairTime - currentMins;
-  
-  // Trigger notification 10 minutes before, only once per pair
-  if (minsBefore === 10 && lastNotificationTime !== nextPairTime) {
-    lastNotificationTime = nextPairTime;
-    playNotificationSound();
-    
-    // Also try browser notification
-    if (Notification.permission === 'granted') {
-      const pairNumber = getTodayPairs().find(p => timeToMinutes(TIME[p.pair].start) === nextPairTime);
-      if (pairNumber) {
-        new Notification('Пара через 10 хвилин! 🎓', {
-          body: `${pairNumber.subject}`,
-          icon: '🎥'
-        });
+    // Find next pair start time for beer logic
+    for (const pair of todaySchedule) {
+      const [sh, sm] = TIME[pair.pair].start.split(':').map(Number);
+      const startMin = sh * 60 + sm;
+      const nowMin = now.getHours() * 60 + now.getMinutes();
+      if (nowMin < startMin) {
+        nextStartTime = startMin;
+        break;
       }
     }
   }
-  
-  updateBeerScreen();
+
+  const currentPairCard = document.getElementById('currentPairCard');
+
+  if (currentPair) {
+    document.getElementById('currentSubject').textContent = currentPair.subject;
+    document.getElementById('currentType').textContent = currentPair.type;
+    document.getElementById('currentTeacher').textContent = currentPair.teacher;
+    document.getElementById('currentTime').textContent = `${hours}:${mins}`;
+
+    const [eh, em] = TIME[currentPair.pair].end.split(':').map(Number);
+    const [sh, sm] = TIME[currentPair.pair].start.split(':').map(Number);
+    const endMin = eh * 60 + em;
+    const startMin = sh * 60 + sm;
+    const nowMin = now.getHours() * 60 + now.getMinutes();
+    const remaining = Math.max(0, endMin - nowMin);
+    const totalPairDuration = endMin - startMin;
+    const elapsed = nowMin - startMin;
+    const percent = Math.min(100, Math.round((elapsed / totalPairDuration) * 100));
+
+    document.getElementById('remainingMins').textContent = remaining;
+    document.getElementById('endTime').textContent = `${String(eh).padStart(2, '0')}:${String(em).padStart(2, '0')}`;
+    document.getElementById('progressPercent').textContent = percent + '%';
+    document.getElementById('progressFill').style.width = percent + '%';
+
+    currentPairCard.classList.add('active');
+    currentPairCard.classList.remove('hidden');
+  } else {
+    currentPairCard.classList.remove('active');
+    currentPairCard.classList.add('hidden');
+
+    // Show beer screen if no classes today
+    if (todayName && todaySchedule && !currentPair && nextStartTime === null) {
+      beerScreen.classList.add('active');
+    } else {
+      beerScreen.classList.remove('active');
+    }
+  }
 }
 
-// Request notification permission
-if ('Notification' in window && Notification.permission === 'default') {
-  Notification.requestPermission();
-}
-
-// Update every minute
-setInterval(checkForNotification, 60000);
-checkForNotification(); // Initial check
-
-// Current pair card logic (original code placeholder)
+updateTime();
+setInterval(updateTime, 10000);
 </script>
 </body>
 </html>
