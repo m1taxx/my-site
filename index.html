@@ -904,6 +904,9 @@
   </div>
 
 <script>
+let beerScreenClosed = false;
+let beerAutoCloseTimer = null;
+
 const TIME = {
   1: {start: "8:30", end: "10:05", display: "8:30–9:15 / 9:20–10:05"},
   2: {start: "10:15", end: "11:50", display: "10:15–11:00 / 11:05–11:50"},
@@ -998,223 +1001,95 @@ const SCHEDULE = {
       { label:"Zoom", url:L.zoomRublyov },
       { label:"Методичка (текст)", url:"materials/matan-metodichka.pdf" }
     ] },
-    { pair:2, subject:"Іноземна мова", type:"пр · 24 год", teacher:"Дороніна", materials:[
-      { label:"Zoom — English ", url:L.zoomDoronina }
+    { pair:2, subject:"Програмування", type:"пр · 22 год", teacher:"ас. Веклич Р.М.", materials:[
+      { label:"Zoom", url:L.zoomVeklichLek },
+      { label:"Google Диск", url:L.driveVeklich }
     ] },
-    { pair:3, subject:"Іноземна мова", type:"пр · 28 год", teacher:"Дороніна", materials:[
-      { label:"Zoom — English ", url:L.zoomDoronina }
+    { pair:3, subject:"Дискретна математика", type:"пр · 22 год", teacher:"доц. Трохимчук Р.М.", materials:[
+      { label:"Zoom", url:L.zoomTrokhymchuk },
+      { label:"Youtube", url:L.dmBook },
+      { label:"Дискретна математика (текст)", url:"materials/discrete-math.pdf" }
     ] },
-    { pair:4, subject:"Математичний аналіз", type:"пр · 28 год (одна з підгруп)", teacher:"проф. Номіровський А.Д.", materials:[] }
+    { pair:4, subject:"ОНС", type:"16 год", teacher:"", materials:[] }
   ]
 };
 
-const ROMAN = {1:"I",2:"II",3:"III",4:"IV"};
-const days = Object.keys(SCHEDULE);
-
-// JS getDay(): 0 Sun ... 6 Sat -> map to our day names (Mon-Fri)
-const jsDayToName = {1:"Понеділок",2:"Вівторок",3:"Середа",4:"Четвер",5:"П'ятниця"};
-const todayName = jsDayToName[new Date().getDay()] || null;
-
-const nav = document.getElementById('daysNav');
-const panels = document.getElementById('panels');
-const beerScreen = document.getElementById('beerScreen');
-const beerCloseBtn = document.getElementById('beerCloseBtn');
-
-// Close beer screen on button click
-beerCloseBtn.addEventListener('click', () => {
-  beerScreen.classList.remove('active');
+// закрытие пива по кнопке и остановка автоматического открытия
+document.getElementById('beerCloseBtn').addEventListener('click', () => {
+  document.getElementById('beerScreen').classList.remove('active');
+  beerScreenClosed = true;
+  if (beerAutoCloseTimer) clearTimeout(beerAutoCloseTimer);
 });
 
-days.forEach((day, i) => {
-  const btn = document.createElement('button');
-  btn.textContent = day;
-  btn.dataset.day = day;
-  if (day === todayName) btn.classList.add('is-today');
-  const dot = document.createElement('span');
-  dot.className = 'dot';
-  btn.appendChild(dot);
-  btn.addEventListener('click', () => selectDay(day));
-  nav.appendChild(btn);
-
-  const panel = document.createElement('div');
-  panel.className = 'day-panel';
-  panel.dataset.day = day;
-  panel.innerHTML = '<div class="pairs-container"></div>';
-
-  SCHEDULE[day].forEach(pair => {
-    const pairEl = document.createElement('div');
-    pairEl.className = 'pair';
-    if (pair.materials.length) pairEl.classList.add('has-materials');
-
-    const head = document.createElement('div');
-    head.className = 'pair-head';
-
-    const num = document.createElement('div');
-    num.className = 'pair-num';
-    num.innerHTML = `<span class="roman">${ROMAN[pair.pair]}</span><span class="time">${TIME[pair.pair].display}</span>`;
-
-    const body = document.createElement('div');
-    body.className = 'pair-body';
-    body.innerHTML = `
-      <p class="subject">${pair.subject}</p>
-      <div class="meta">
-        <span class="type">${pair.type}</span>
-        <span class="teacher">${pair.teacher}</span>
-      </div>
-    `;
-
-    const toggle = document.createElement('div');
-    toggle.className = 'toggle';
-    toggle.innerHTML = `<span>${pair.materials.length ? pair.materials.length : ''}</span><span class="chev">›</span>`;
-    if (!pair.materials.length) toggle.style.color = 'transparent';
-
-    const folderCount = document.createElement('span');
-    folderCount.className = 'folder-count';
-    folderCount.textContent = pair.materials.length;
-
-    head.appendChild(num);
-    head.appendChild(body);
-    if (pair.materials.length) head.appendChild(folderCount);
-    head.appendChild(toggle);
-
-    const materials = document.createElement('div');
-    materials.className = 'materials';
-
-    if (pair.materials.length) {
-      const inner = document.createElement('div');
-      inner.className = 'materials-inner';
-
-      const ul = document.createElement('ul');
-      pair.materials.forEach(m => {
-        const li = document.createElement('li');
-        const a = document.createElement('a');
-        a.href = m.url;
-        a.target = '_blank';
-        a.innerHTML = `<span class="ico">↗</span><span>${m.label}</span>`;
-        li.appendChild(a);
-        ul.appendChild(li);
-      });
-      inner.appendChild(ul);
-      materials.appendChild(inner);
-    } else {
-      const inner = document.createElement('div');
-      inner.className = 'materials-inner';
-      const empty = document.createElement('div');
-      empty.className = 'empty-folder';
-      empty.innerHTML = '<em>Матеріалів немає</em>';
-      inner.appendChild(empty);
-      materials.appendChild(inner);
-    }
-
-    pairEl.appendChild(head);
-    pairEl.appendChild(materials);
-
-    head.addEventListener('click', () => {
-      pairEl.classList.toggle('open');
-      materials.style.maxHeight = pairEl.classList.contains('open') ? materials.scrollHeight + 'px' : '0';
-    });
-
-    panel.querySelector('.pairs-container').appendChild(pairEl);
-  });
-
-  panels.appendChild(panel);
-});
-
-// Select day
-function selectDay(day) {
-  // Update nav buttons
-  document.querySelectorAll('nav.days button').forEach(btn => btn.classList.remove('active'));
-  document.querySelector(`nav.days button[data-day="${day}"]`).classList.add('active');
-
-  // Update panels
-  document.querySelectorAll('.day-panel').forEach(p => p.classList.remove('active'));
-  document.querySelector(`.day-panel[data-day="${day}"]`).classList.add('active');
+function openBeerScreenWithAutoClose() {
+  if (!beerScreenClosed) {
+    document.getElementById('beerScreen').classList.add('active');
+    if (beerAutoCloseTimer) clearTimeout(beerAutoCloseTimer);
+    beerAutoCloseTimer = setTimeout(() => {
+      document.getElementById('beerScreen').classList.remove('active');
+    }, 30000);
+  }
 }
 
-// Init
-if (todayName) {
-  selectDay(todayName);
-} else {
-  selectDay(days[0]);
-}
-
-// Update current time and classes
-function updateTime() {
+function checkCurrentPair(){
   const now = new Date();
-  const hours = String(now.getHours()).padStart(2, '0');
-  const mins = String(now.getMinutes()).padStart(2, '0');
-  document.getElementById('nowText').textContent = `${hours}:${mins}`;
+  const currentTime = now.getHours() * 60 + now.getMinutes();
+  const days = ["Неділя", "Понеділок", "Вівторок", "Середа", "Четвер", "П'ятниця", "Субота"];
+  const today = days[now.getDay()];
+  const todaySchedule = SCHEDULE[today] || [];
 
-  const todaySchedule = todayName ? SCHEDULE[todayName] : null;
   let currentPair = null;
-  let nextStartTime = null;
+  let foundAnyPair = false;
 
-  if (todaySchedule) {
-    for (const pair of todaySchedule) {
-      const [sh, sm] = TIME[pair.pair].start.split(':').map(Number);
-      const [eh, em] = TIME[pair.pair].end.split(':').map(Number);
-      const startMin = sh * 60 + sm;
-      const endMin = eh * 60 + em;
-      const nowMin = now.getHours() * 60 + now.getMinutes();
+  for(const pair of todaySchedule) {
+    foundAnyPair = true;
+    const [startHour, startMin] = pair.pair in TIME ? TIME[pair.pair].start.split(':').map(Number) : [0, 0];
+    const startTimeInMin = startHour * 60 + startMin;
+    const [endHour, endMin] = pair.pair in TIME ? TIME[pair.pair].end.split(':').map(Number) : [23, 59];
+    const endTimeInMin = endHour * 60 + endMin;
 
-      if (nowMin >= startMin && nowMin < endMin) {
-        currentPair = pair;
-        break;
-      }
-    }
-
-    // Find next pair start time for beer logic
-    for (const pair of todaySchedule) {
-      const [sh, sm] = TIME[pair.pair].start.split(':').map(Number);
-      const startMin = sh * 60 + sm;
-      const nowMin = now.getHours() * 60 + now.getMinutes();
-      if (nowMin < startMin) {
-        nextStartTime = startMin;
-        break;
-      }
+    if(currentTime >= startTimeInMin && currentTime <= endTimeInMin){
+      currentPair = pair;
+      break;
     }
   }
 
-  const currentPairCard = document.getElementById('currentPairCard');
-
-  if (currentPair) {
+  if(currentPair){
+    document.getElementById('currentPairCard').classList.add('active');
+    document.getElementById('currentPairCard').classList.remove('hidden');
     document.getElementById('currentSubject').textContent = currentPair.subject;
     document.getElementById('currentType').textContent = currentPair.type;
     document.getElementById('currentTeacher').textContent = currentPair.teacher;
-    document.getElementById('currentTime').textContent = `${hours}:${mins}`;
+    document.getElementById('currentTime').textContent = String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
 
-    const [eh, em] = TIME[currentPair.pair].end.split(':').map(Number);
-    const [sh, sm] = TIME[currentPair.pair].start.split(':').map(Number);
-    const endMin = eh * 60 + em;
-    const startMin = sh * 60 + sm;
-    const nowMin = now.getHours() * 60 + now.getMinutes();
-    const remaining = Math.max(0, endMin - nowMin);
-    const totalPairDuration = endMin - startMin;
-    const elapsed = nowMin - startMin;
-    const percent = Math.min(100, Math.round((elapsed / totalPairDuration) * 100));
+    const [startHour, startMin] = TIME[currentPair.pair].start.split(':').map(Number);
+    const [endHour, endMin] = TIME[currentPair.pair].end.split(':').map(Number);
+    const startInMin = startHour * 60 + startMin;
+    const endInMin = endHour * 60 + endMin;
+    const totalDuration = endInMin - startInMin;
+    const timeElapsed = currentTime - startInMin;
+    const progress = (timeElapsed / totalDuration) * 100;
 
-    document.getElementById('remainingMins').textContent = remaining;
-    document.getElementById('endTime').textContent = `${String(eh).padStart(2, '0')}:${String(em).padStart(2, '0')}`;
-    document.getElementById('progressPercent').textContent = percent + '%';
-    document.getElementById('progressFill').style.width = percent + '%';
+    document.getElementById('progressFill').style.width = progress + '%';
+    document.getElementById('progressPercent').textContent = Math.round(progress) + '%';
 
-    currentPairCard.classList.add('active');
-    currentPairCard.classList.remove('hidden');
+    const remainingSeconds = (endInMin - currentTime) * 60 - now.getSeconds();
+    const remainingMins = Math.ceil(remainingSeconds / 60);
+    document.getElementById('remainingMins').textContent = remainingMins;
+    document.getElementById('endTime').textContent = String(endHour).padStart(2, '0') + ':' + String(endMin).padStart(2, '0');
   } else {
-    currentPairCard.classList.remove('active');
-    currentPairCard.classList.add('hidden');
-
-    // Show beer screen if no classes today
-    if (todayName && todaySchedule && !currentPair && nextStartTime === null) {
-      beerScreen.classList.add('active');
-    } else {
-      beerScreen.classList.remove('active');
+    document.getElementById('currentPairCard').classList.remove('active');
+    document.getElementById('currentPairCard').classList.add('hidden');
+    if(foundAnyPair){
+      openBeerScreenWithAutoClose();
     }
   }
+
+  document.getElementById('nowText').textContent = String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
 }
 
-updateTime();
-setInterval(updateTime, 10000);
+checkCurrentPair();
+setInterval(checkCurrentPair, 10000);
 </script>
 </body>
 </html>
