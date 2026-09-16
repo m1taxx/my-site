@@ -679,6 +679,69 @@
     background:var(--paper);
   }
 
+  .beer-screen{
+    display:none;
+    position:fixed;
+    top:0;
+    left:0;
+    width:100%;
+    height:100%;
+    z-index:1000;
+    background: var(--paper);
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    gap:40px;
+    animation:beerAppear 0.6s ease-out;
+  }
+
+  .beer-screen.active{
+    display:flex;
+  }
+
+  @keyframes beerAppear{
+    from{
+      opacity:0;
+      transform:scale(0.8);
+    }
+    to{
+      opacity:1;
+      transform:scale(1);
+    }
+  }
+
+  .beer-emoji{
+    font-size:150px;
+    animation:beerBounce 2s ease-in-out infinite;
+  }
+
+  @keyframes beerBounce{
+    0%, 100%{
+      transform:translateY(0) rotate(0deg);
+    }
+    50%{
+      transform:translateY(-30px) rotate(-5deg);
+    }
+  }
+
+  .beer-text{
+    font-size:48px;
+    font-weight:700;
+    color:var(--ink);
+    text-align:center;
+    letter-spacing:-0.02em;
+    font-family:'Poppins', sans-serif;
+    line-height:1.2;
+  }
+
+  .beer-text span{
+    display:block;
+    font-size:28px;
+    color:var(--ink-soft);
+    margin-top:16px;
+    font-weight:500;
+  }
+
   footer{
     margin-top:48px;
     padding-top:20px;
@@ -717,6 +780,15 @@
     .shape-1, .shape-2, .shape-3{
       width:250px;
       height:250px;
+    }
+    .beer-emoji{
+      font-size:100px;
+    }
+    .beer-text{
+      font-size:32px;
+    }
+    .beer-text span{
+      font-size:20px;
     }
   }
 </style>
@@ -787,6 +859,14 @@
       Натисни на пару, щоб відкрити папку з матеріалами.
     </footer>
 
+  </div>
+
+  <div class="beer-screen" id="beerScreen">
+    <div class="beer-emoji">🍺</div>
+    <div class="beer-text">
+      На сьогодни все!
+      <span>Можете пити пиво</span>
+    </div>
   </div>
 
 <script>
@@ -997,82 +1077,134 @@ if (todayName) {
   nowText.textContent = "вихідний";
 }
 
-// Current pair card logic
-function timeStrToMinutes(timeStr) {
-  const [hours, mins] = timeStr.split(':').map(Number);
-  return hours * 60 + mins;
+// Helper functions for time conversion
+function timeToMinutes(timeStr) {
+  const [h, m] = timeStr.split(':').map(Number);
+  return h * 60 + m;
 }
 
-function minutesToTimeStr(minutes) {
-  const h = Math.floor(minutes / 60);
-  const m = minutes % 60;
+function minutesToTime(mins) {
+  const h = Math.floor(mins / 60);
+  const m = mins % 60;
   return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
 }
 
-function getCurrentPair() {
-  if (!todayName) return null;
-  
+// Get all pairs for today sorted by time
+function getTodayPairs() {
+  if (!todayName || !SCHEDULE[todayName]) return [];
+  return SCHEDULE[todayName].sort((a, b) => a.pair - b.pair);
+}
+
+// Get next pair starting time
+function getNextPairTime() {
   const now = new Date();
   const currentMins = now.getHours() * 60 + now.getMinutes();
+  const pairs = getTodayPairs();
   
-  const todaySchedule = SCHEDULE[todayName];
-  
-  for (let lesson of todaySchedule) {
-    const startMins = timeStrToMinutes(TIME[lesson.pair].start);
-    const endMins = timeStrToMinutes(TIME[lesson.pair].end);
-    
-    if (currentMins >= startMins && currentMins < endMins) {
-      return {
-        lesson,
-        startMins,
-        endMins,
-        currentMins
-      };
-    }
+  for (const pair of pairs) {
+    const startMins = timeToMinutes(TIME[pair.pair].start);
+    if (startMins > currentMins) return startMins;
   }
-  
   return null;
 }
 
-function updateCurrentPairCard() {
-  const currentPair = getCurrentPair();
-  const card = document.getElementById('currentPairCard');
+// Create audio context for notification sound
+function playNotificationSound() {
+  try {
+    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    const oscillator = audioContext.createOscillator();
+    const gain = audioContext.createGain();
+    
+    oscillator.connect(gain);
+    gain.connect(audioContext.destination);
+    
+    // Create a pleasant alert sound (two beeps)
+    oscillator.frequency.value = 800;
+    gain.gain.setValueAtTime(0.3, audioContext.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
+    
+    oscillator.start(audioContext.currentTime);
+    oscillator.stop(audioContext.currentTime + 0.1);
+    
+    // Second beep
+    const osc2 = audioContext.createOscillator();
+    osc2.connect(gain);
+    gain.gain.setValueAtTime(0.3, audioContext.currentTime + 0.15);
+    gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.25);
+    osc2.frequency.value = 1000;
+    osc2.start(audioContext.currentTime + 0.15);
+    osc2.stop(audioContext.currentTime + 0.25);
+  } catch (e) {
+    console.log('Audio notification not available');
+  }
+}
+
+// Show beer screen when all classes end
+function checkIfAllClassesEnded() {
+  const pairs = getTodayPairs();
+  if (pairs.length === 0) return false;
   
-  if (!currentPair) {
-    card.classList.remove('active');
-    card.classList.add('hidden');
+  const lastPair = pairs[pairs.length - 1];
+  const lastEndTime = timeToMinutes(TIME[lastPair.pair].end);
+  const now = new Date();
+  const currentMins = now.getHours() * 60 + now.getMinutes();
+  
+  return currentMins >= lastEndTime;
+}
+
+function updateBeerScreen() {
+  const beerScreen = document.getElementById('beerScreen');
+  if (checkIfAllClassesEnded()) {
+    beerScreen.classList.add('active');
+  } else {
+    beerScreen.classList.remove('active');
+  }
+}
+
+// Check for notification 10 minutes before next pair
+let lastNotificationTime = -1;
+
+function checkForNotification() {
+  const nextPairTime = getNextPairTime();
+  if (nextPairTime === null) {
+    updateBeerScreen();
     return;
   }
   
-  card.classList.add('active');
-  card.classList.remove('hidden');
-  
-  const { lesson, startMins, endMins, currentMins } = currentPair;
   const now = new Date();
+  const currentMins = now.getHours() * 60 + now.getMinutes();
+  const minsBefore = nextPairTime - currentMins;
   
-  // Update time
-  document.getElementById('currentTime').textContent = 
-    `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+  // Trigger notification 10 minutes before, only once per pair
+  if (minsBefore === 10 && lastNotificationTime !== nextPairTime) {
+    lastNotificationTime = nextPairTime;
+    playNotificationSound();
+    
+    // Also try browser notification
+    if (Notification.permission === 'granted') {
+      const pairNumber = getTodayPairs().find(p => timeToMinutes(TIME[p.pair].start) === nextPairTime);
+      if (pairNumber) {
+        new Notification('Пара через 10 хвилин! 🎓', {
+          body: `${pairNumber.subject}`,
+          icon: '🎥'
+        });
+      }
+    }
+  }
   
-  // Update lesson info
-  document.getElementById('currentSubject').textContent = lesson.subject;
-  document.getElementById('currentType').textContent = lesson.type;
-  document.getElementById('currentTeacher').textContent = lesson.teacher || '—';
-  
-  // Calculate remaining time
-  const remainingMins = endMins - currentMins;
-  const progressPercent = Math.round(((currentMins - startMins) / (endMins - startMins)) * 100);
-  
-  document.getElementById('remainingMins').textContent = remainingMins;
-  document.getElementById('endTime').textContent = minutesToTimeStr(endMins);
-  document.getElementById('progressPercent').textContent = `${progressPercent}%`;
-  document.getElementById('progressFill').style.width = `${progressPercent}%`;
+  updateBeerScreen();
 }
 
-// Update every 10 seconds
-setInterval(updateCurrentPairCard, 10000);
-updateCurrentPairCard();
+// Request notification permission
+if ('Notification' in window && Notification.permission === 'default') {
+  Notification.requestPermission();
+}
 
+// Update every minute
+setInterval(checkForNotification, 60000);
+checkForNotification(); // Initial check
+
+// Current pair card logic (original code placeholder)
 </script>
 </body>
 </html>
