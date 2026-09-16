@@ -679,95 +679,6 @@
     background:var(--paper);
   }
 
-  .beer-screen{
-    display:none;
-    position:fixed;
-    top:0;
-    left:0;
-    width:100%;
-    height:100%;
-    z-index:1000;
-    background: var(--paper);
-    flex-direction:column;
-    align-items:center;
-    justify-content:center;
-    gap:40px;
-    animation:beerAppear 0.6s ease-out;
-  }
-
-  .beer-screen.active{
-    display:flex;
-  }
-
-  @keyframes beerAppear{
-    from{
-      opacity:0;
-      transform:scale(0.8);
-    }
-    to{
-      opacity:1;
-      transform:scale(1);
-    }
-  }
-
-  .beer-close-btn{
-    position:absolute;
-    top:24px;
-    right:24px;
-    width:40px;
-    height:40px;
-    border:none;
-    background:var(--card);
-    border:1px solid var(--border);
-    border-radius:12px;
-    color:var(--ink-soft);
-    font-size:24px;
-    cursor:pointer;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    transition:all var(--transition);
-    z-index:10;
-  }
-
-  .beer-close-btn:hover{
-    border-color:var(--teal);
-    color:var(--teal);
-    background:var(--teal-soft);
-  }
-
-  .beer-emoji{
-    font-size:150px;
-    animation:beerBounce 2s ease-in-out infinite;
-  }
-
-  @keyframes beerBounce{
-    0%, 100%{
-      transform:translateY(0) rotate(0deg);
-    }
-    50%{
-      transform:translateY(-30px) rotate(-5deg);
-    }
-  }
-
-  .beer-text{
-    font-size:48px;
-    font-weight:700;
-    color:var(--ink);
-    text-align:center;
-    letter-spacing:-0.02em;
-    font-family:'Poppins', sans-serif;
-    line-height:1.2;
-  }
-
-  .beer-text span{
-    display:block;
-    font-size:28px;
-    color:var(--ink-soft);
-    margin-top:16px;
-    font-weight:500;
-  }
-
   footer{
     margin-top:48px;
     padding-top:20px;
@@ -806,22 +717,6 @@
     .shape-1, .shape-2, .shape-3{
       width:250px;
       height:250px;
-    }
-    .beer-emoji{
-      font-size:100px;
-    }
-    .beer-text{
-      font-size:32px;
-    }
-    .beer-text span{
-      font-size:20px;
-    }
-    .beer-close-btn{
-      width:36px;
-      height:36px;
-      font-size:20px;
-      top:16px;
-      right:16px;
     }
   }
 </style>
@@ -894,19 +789,7 @@
 
   </div>
 
-  <div class="beer-screen" id="beerScreen">
-    <button class="beer-close-btn" id="beerCloseBtn">×</button>
-    <div class="beer-emoji">🍺</div>
-    <div class="beer-text">
-      На сьогодни все!
-      <span>Можете пити пиво</span>
-    </div>
-  </div>
-
 <script>
-let beerScreenClosed = false;
-let beerAutoCloseTimer = null;
-
 const TIME = {
   1: {start: "8:30", end: "10:05", display: "8:30–9:15 / 9:20–10:05"},
   2: {start: "10:15", end: "11:50", display: "10:15–11:00 / 11:05–11:50"},
@@ -1001,95 +884,195 @@ const SCHEDULE = {
       { label:"Zoom", url:L.zoomRublyov },
       { label:"Методичка (текст)", url:"materials/matan-metodichka.pdf" }
     ] },
-    { pair:2, subject:"Програмування", type:"пр · 22 год", teacher:"ас. Веклич Р.М.", materials:[
-      { label:"Zoom", url:L.zoomVeklichLek },
-      { label:"Google Диск", url:L.driveVeklich }
+    { pair:2, subject:"Іноземна мова", type:"пр · 24 год", teacher:"Дороніна", materials:[
+      { label:"Zoom — English ", url:L.zoomDoronina }
     ] },
-    { pair:3, subject:"Дискретна математика", type:"пр · 22 год", teacher:"доц. Трохимчук Р.М.", materials:[
-      { label:"Zoom", url:L.zoomTrokhymchuk },
-      { label:"Youtube", url:L.dmBook },
-      { label:"Дискретна математика (текст)", url:"materials/discrete-math.pdf" }
+    { pair:3, subject:"Іноземна мова", type:"пр · 28 год", teacher:"Дороніна", materials:[
+      { label:"Zoom — English ", url:L.zoomDoronina }
     ] },
-    { pair:4, subject:"ОНС", type:"16 год", teacher:"", materials:[] }
+    { pair:4, subject:"Математичний аналіз", type:"пр · 28 год (одна з підгруп)", teacher:"проф. Номіровський А.Д.", materials:[] }
   ]
 };
 
-// закрытие пива по кнопке и остановка автоматического открытия
-document.getElementById('beerCloseBtn').addEventListener('click', () => {
-  document.getElementById('beerScreen').classList.remove('active');
-  beerScreenClosed = true;
-  if (beerAutoCloseTimer) clearTimeout(beerAutoCloseTimer);
+const ROMAN = {1:"I",2:"II",3:"III",4:"IV"};
+const days = Object.keys(SCHEDULE);
+
+// JS getDay(): 0 Sun ... 6 Sat -> map to our day names (Mon-Fri)
+const jsDayToName = {1:"Понеділок",2:"Вівторок",3:"Середа",4:"Четвер",5:"П'ятниця"};
+const todayName = jsDayToName[new Date().getDay()] || null;
+
+const nav = document.getElementById('daysNav');
+const panels = document.getElementById('panels');
+
+days.forEach((day, i) => {
+  const btn = document.createElement('button');
+  btn.textContent = day;
+  btn.dataset.day = day;
+  if (day === todayName) btn.classList.add('is-today');
+  const dot = document.createElement('span');
+  dot.className = 'dot';
+  btn.appendChild(dot);
+  btn.addEventListener('click', () => selectDay(day));
+  nav.appendChild(btn);
+
+  const panel = document.createElement('div');
+  panel.className = 'day-panel';
+  panel.dataset.day = day;
+
+  SCHEDULE[day].forEach(lesson => {
+    const card = document.createElement('div');
+    card.className = 'pair';
+    if (lesson.materials && lesson.materials.length) card.classList.add('has-materials');
+
+    const head = document.createElement('div');
+    head.className = 'pair-head';
+    head.innerHTML = `
+      <div class="pair-num">
+        <span class="roman">${ROMAN[lesson.pair]}</span>
+        <span class="time">${TIME[lesson.pair].display}</span>
+      </div>
+      <div class="pair-body">
+        <p class="subject">${lesson.subject}</p>
+        <div class="meta"><span class="type">${lesson.type}</span>${lesson.teacher ? lesson.teacher : ''}</div>
+        ${lesson.extra ? `<div class="extra">${lesson.extra}</div>` : ''}
+      </div>
+      <div class="toggle">
+        <span class="folder-count">${lesson.materials && lesson.materials.length ? lesson.materials.length : '—'}</span>
+        <span class="chev">›</span>
+      </div>
+    `;
+    head.addEventListener('click', () => card.classList.toggle('open'));
+
+    const materials = document.createElement('div');
+    materials.className = 'materials';
+    const inner = document.createElement('div');
+    inner.className = 'materials-inner';
+    if (lesson.materials && lesson.materials.length) {
+      const ul = document.createElement('ul');
+      lesson.materials.forEach(m => {
+        const li = document.createElement('li');
+        if (m.url) {
+          const isZoomMeet = /zoom|meet\.google/.test(m.url);
+          const icon = isZoomMeet ? '🎥' : /drive\.google/.test(m.url) ? '💾' : /t\.me/.test(m.url) ? '💬' : /\.pdf$/i.test(m.url) ? '📄' : '🔗';
+          li.innerHTML = `<a href="${m.url}" target="_blank" rel="noopener"><span class="ico">${icon}</span>${m.label}</a>`;
+        } else {
+          li.innerHTML = `<span class="file-badge"><span class="ico">📄</span>${m.label}<span class="chat-tag">у чаті</span></span>`;
+        }
+        ul.appendChild(li);
+      });
+      inner.appendChild(ul);
+    } else {
+      const empty = document.createElement('div');
+      empty.className = 'empty-folder';
+      empty.textContent = 'Поки що порожньо — сюди додамо книги, конспекти й посилання на Google Диск.';
+      inner.appendChild(empty);
+    }
+    materials.appendChild(inner);
+
+    card.appendChild(head);
+    card.appendChild(materials);
+    panel.appendChild(card);
+  });
+
+  panels.appendChild(panel);
 });
 
-function openBeerScreenWithAutoClose() {
-  if (!beerScreenClosed) {
-    document.getElementById('beerScreen').classList.add('active');
-    if (beerAutoCloseTimer) clearTimeout(beerAutoCloseTimer);
-    beerAutoCloseTimer = setTimeout(() => {
-      document.getElementById('beerScreen').classList.remove('active');
-    }, 30000);
-  }
+function selectDay(day){
+  document.querySelectorAll('nav.days button').forEach(b => b.classList.toggle('active', b.dataset.day === day));
+  document.querySelectorAll('.day-panel').forEach(p => p.classList.toggle('active', p.dataset.day === day));
 }
 
-function checkCurrentPair(){
+selectDay(todayName && days.includes(todayName) ? todayName : days[0]);
+
+// max-height fix so transition works with dynamic content
+const style = document.createElement('style');
+style.textContent = `.pair.open .materials{ max-height: 700px; }`;
+document.head.appendChild(style);
+
+// "today" indicator text
+const nowText = document.getElementById('nowText');
+if (todayName) {
+  nowText.textContent = todayName;
+} else {
+  nowText.textContent = "вихідний";
+}
+
+// Current pair card logic
+function timeStrToMinutes(timeStr) {
+  const [hours, mins] = timeStr.split(':').map(Number);
+  return hours * 60 + mins;
+}
+
+function minutesToTimeStr(minutes) {
+  const h = Math.floor(minutes / 60);
+  const m = minutes % 60;
+  return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+}
+
+function getCurrentPair() {
+  if (!todayName) return null;
+  
   const now = new Date();
-  const currentTime = now.getHours() * 60 + now.getMinutes();
-  const days = ["Неділя", "Понеділок", "Вівторок", "Середа", "Четвер", "П'ятниця", "Субота"];
-  const today = days[now.getDay()];
-  const todaySchedule = SCHEDULE[today] || [];
-
-  let currentPair = null;
-  let foundAnyPair = false;
-
-  for(const pair of todaySchedule) {
-    foundAnyPair = true;
-    const [startHour, startMin] = pair.pair in TIME ? TIME[pair.pair].start.split(':').map(Number) : [0, 0];
-    const startTimeInMin = startHour * 60 + startMin;
-    const [endHour, endMin] = pair.pair in TIME ? TIME[pair.pair].end.split(':').map(Number) : [23, 59];
-    const endTimeInMin = endHour * 60 + endMin;
-
-    if(currentTime >= startTimeInMin && currentTime <= endTimeInMin){
-      currentPair = pair;
-      break;
+  const currentMins = now.getHours() * 60 + now.getMinutes();
+  
+  const todaySchedule = SCHEDULE[todayName];
+  
+  for (let lesson of todaySchedule) {
+    const startMins = timeStrToMinutes(TIME[lesson.pair].start);
+    const endMins = timeStrToMinutes(TIME[lesson.pair].end);
+    
+    if (currentMins >= startMins && currentMins < endMins) {
+      return {
+        lesson,
+        startMins,
+        endMins,
+        currentMins
+      };
     }
   }
-
-  if(currentPair){
-    document.getElementById('currentPairCard').classList.add('active');
-    document.getElementById('currentPairCard').classList.remove('hidden');
-    document.getElementById('currentSubject').textContent = currentPair.subject;
-    document.getElementById('currentType').textContent = currentPair.type;
-    document.getElementById('currentTeacher').textContent = currentPair.teacher;
-    document.getElementById('currentTime').textContent = String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
-
-    const [startHour, startMin] = TIME[currentPair.pair].start.split(':').map(Number);
-    const [endHour, endMin] = TIME[currentPair.pair].end.split(':').map(Number);
-    const startInMin = startHour * 60 + startMin;
-    const endInMin = endHour * 60 + endMin;
-    const totalDuration = endInMin - startInMin;
-    const timeElapsed = currentTime - startInMin;
-    const progress = (timeElapsed / totalDuration) * 100;
-
-    document.getElementById('progressFill').style.width = progress + '%';
-    document.getElementById('progressPercent').textContent = Math.round(progress) + '%';
-
-    const remainingSeconds = (endInMin - currentTime) * 60 - now.getSeconds();
-    const remainingMins = Math.ceil(remainingSeconds / 60);
-    document.getElementById('remainingMins').textContent = remainingMins;
-    document.getElementById('endTime').textContent = String(endHour).padStart(2, '0') + ':' + String(endMin).padStart(2, '0');
-  } else {
-    document.getElementById('currentPairCard').classList.remove('active');
-    document.getElementById('currentPairCard').classList.add('hidden');
-    if(foundAnyPair){
-      openBeerScreenWithAutoClose();
-    }
-  }
-
-  document.getElementById('nowText').textContent = String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
+  
+  return null;
 }
 
-checkCurrentPair();
-setInterval(checkCurrentPair, 10000);
+function updateCurrentPairCard() {
+  const currentPair = getCurrentPair();
+  const card = document.getElementById('currentPairCard');
+  
+  if (!currentPair) {
+    card.classList.remove('active');
+    card.classList.add('hidden');
+    return;
+  }
+  
+  card.classList.add('active');
+  card.classList.remove('hidden');
+  
+  const { lesson, startMins, endMins, currentMins } = currentPair;
+  const now = new Date();
+  
+  // Update time
+  document.getElementById('currentTime').textContent = 
+    `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+  
+  // Update lesson info
+  document.getElementById('currentSubject').textContent = lesson.subject;
+  document.getElementById('currentType').textContent = lesson.type;
+  document.getElementById('currentTeacher').textContent = lesson.teacher || '—';
+  
+  // Calculate remaining time
+  const remainingMins = endMins - currentMins;
+  const progressPercent = Math.round(((currentMins - startMins) / (endMins - startMins)) * 100);
+  
+  document.getElementById('remainingMins').textContent = remainingMins;
+  document.getElementById('endTime').textContent = minutesToTimeStr(endMins);
+  document.getElementById('progressPercent').textContent = `${progressPercent}%`;
+  document.getElementById('progressFill').style.width = `${progressPercent}%`;
+}
+
+// Update every 10 seconds
+setInterval(updateCurrentPairCard, 10000);
+updateCurrentPairCard();
+
 </script>
 </body>
 </html>
