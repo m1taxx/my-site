@@ -402,6 +402,11 @@
     z-index:1;
   }
 
+  .current-lesson-row + .current-lesson-row{
+    margin-top:14px;
+    padding-top:14px;
+    border-top:1px dashed var(--border);
+  }
   .pair-info{
     flex:1;
   }
@@ -501,6 +506,77 @@
     color:var(--ink-faint);
     font-size:10px;
     font-weight:500;
+  }
+
+  .all-done-card{
+    display:none;
+    align-items:center;
+    gap:18px;
+    background:linear-gradient(135deg, rgba(245,158,11,0.12), rgba(245,158,11,0.04));
+    border:1.5px solid var(--amber);
+    border-radius:var(--radius);
+    padding:22px 24px;
+    margin-bottom:32px;
+    box-shadow:var(--shadow-lg);
+    position:relative;
+    z-index:1;
+    animation:slideIn var(--transition);
+  }
+  .all-done-card.active{
+    display:flex;
+  }
+  .all-done-emoji{
+    font-size:44px;
+    line-height:1;
+    flex-shrink:0;
+  }
+  .all-done-title{
+    font-family:'Poppins', sans-serif;
+    font-size:18px;
+    font-weight:700;
+    color:var(--ink);
+    margin:0 0 4px;
+  }
+  .all-done-sub{
+    font-size:14px;
+    color:var(--ink-soft);
+    margin:0;
+  }
+
+  .toast{
+    position:fixed;
+    left:50%;
+    bottom:-100px;
+    transform:translateX(-50%);
+    z-index:50;
+    background:var(--card);
+    border:1.5px solid var(--amber);
+    box-shadow:var(--shadow-lg);
+    border-radius:14px;
+    padding:14px 20px;
+    display:flex;
+    align-items:center;
+    gap:12px;
+    font-family:'Poppins', sans-serif;
+    font-size:14px;
+    color:var(--ink);
+    max-width:90vw;
+    transition:bottom 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  .toast.show{
+    bottom:24px;
+  }
+  .toast .toast-emoji{
+    font-size:22px;
+  }
+  .toast .toast-title{
+    font-weight:600;
+    display:block;
+  }
+  .toast .toast-sub{
+    color:var(--ink-faint);
+    font-size:12.5px;
+    display:block;
   }
 
   nav.days{
@@ -937,12 +1013,7 @@
           <span class="time-big" id="currentTime">13:08</span>
           <span class="time-label">час</span>
         </div>
-        <div class="pair-info">
-          <p class="subject" id="currentSubject">—</p>
-          <div class="meta">
-            <span class="type" id="currentType">—</span>
-            <span id="currentTeacher">—</span>
-          </div>
+        <div class="pair-info" id="currentLessonsList">
         </div>
       </div>
       <div class="time-progress">
@@ -965,6 +1036,16 @@
         </div>
       </div>
     </div>
+
+    <div class="all-done-card" id="allDoneCard">
+      <span class="all-done-emoji">🍺</span>
+      <div>
+        <p class="all-done-title">Всі пари закінчились!</p>
+        <p class="all-done-sub">Можете пити пиво 🍻</p>
+      </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
 
     <nav class="days" id="daysNav"></nav>
 
@@ -1335,71 +1416,129 @@ function minutesToTimeStr(minutes) {
   return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
 }
 
-function getCurrentPair() {
-  if (!todayName) return null;
-  
+function getCurrentPairs() {
+  if (!todayName) return [];
+
   const now = new Date();
   const currentMins = now.getHours() * 60 + now.getMinutes();
-  
+
   const todaySchedule = SCHEDULE[todayName];
-  
+  const matches = [];
+
   for (let lesson of todaySchedule) {
     const startMins = timeStrToMinutes(TIME[lesson.pair].start);
     const endMins = timeStrToMinutes(TIME[lesson.pair].end);
-    
+
     if (currentMins >= startMins && currentMins < endMins) {
-      return {
-        lesson,
-        startMins,
-        endMins,
-        currentMins
-      };
+      matches.push({ lesson, startMins, endMins, currentMins });
     }
   }
-  
-  return null;
+
+  return matches;
+}
+
+function isDayOver() {
+  if (!todayName) return true; // weekend — nothing scheduled at all
+  const now = new Date();
+  const currentMins = now.getHours() * 60 + now.getMinutes();
+  const todaySchedule = SCHEDULE[todayName];
+  const lastEnd = Math.max(...todaySchedule.map(l => timeStrToMinutes(TIME[l.pair].end)));
+  return currentMins >= lastEnd;
 }
 
 function updateCurrentPairCard() {
-  const currentPair = getCurrentPair();
+  const matches = getCurrentPairs();
   const card = document.getElementById('currentPairCard');
-  
-  if (!currentPair) {
+  const allDoneCard = document.getElementById('allDoneCard');
+
+  if (matches.length === 0) {
     card.classList.remove('active');
     card.classList.add('hidden');
+
+    if (isDayOver()) {
+      allDoneCard.classList.add('active');
+    } else {
+      allDoneCard.classList.remove('active');
+    }
     return;
   }
-  
+
+  allDoneCard.classList.remove('active');
   card.classList.add('active');
   card.classList.remove('hidden');
-  
-  const { lesson, startMins, endMins, currentMins } = currentPair;
+
+  const { startMins, endMins, currentMins } = matches[0];
   const now = new Date();
-  
-  // Update time
-  document.getElementById('currentTime').textContent = 
+
+  document.getElementById('currentTime').textContent =
     `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
-  
-  // Update lesson info
-  document.getElementById('currentSubject').textContent = lesson.subject;
-  document.getElementById('currentType').textContent = lesson.type;
-  document.getElementById('currentTeacher').textContent = lesson.teacher || '—';
-  
-  // Calculate remaining time
+
+  // render one row per parallel lesson happening right now
+  const list = document.getElementById('currentLessonsList');
+  list.innerHTML = matches.map(m => `
+    <div class="current-lesson-row">
+      <p class="subject">${m.lesson.subject}${m.lesson.groupNote ? ` <span style="font-size:12px;color:var(--ink-faint);font-weight:500;">(${m.lesson.groupNote})</span>` : ''}</p>
+      <div class="meta">
+        <span class="type">${m.lesson.type}</span>${m.lesson.teacher || (m.lesson.teacherOptions ? m.lesson.teacherOptions.map(t=>t.name).join(' / ') : '')}
+      </div>
+    </div>
+  `).join('');
+
   const remainingMins = endMins - currentMins;
   const progressPercent = Math.round(((currentMins - startMins) / (endMins - startMins)) * 100);
-  
+
   document.getElementById('remainingMins').textContent = remainingMins;
   document.getElementById('endTime').textContent = minutesToTimeStr(endMins);
   document.getElementById('progressPercent').textContent = `${progressPercent}%`;
   document.getElementById('progressFill').style.width = `${progressPercent}%`;
 }
 
+/* ---------- 10-minute-before notification ---------- */
+if (typeof Notification !== 'undefined') {
+  try { Notification.requestPermission(); } catch(e) {}
+}
+
+const notifiedKeys = new Set();
+
+function showToast(title, sub) {
+  const toast = document.getElementById('toast');
+  toast.innerHTML = `<span class="toast-emoji">⏰</span><span><span class="toast-title">${title}</span><span class="toast-sub">${sub}</span></span>`;
+  toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), 8000);
+}
+
+function checkUpcomingNotifications() {
+  if (!todayName) return;
+  const now = new Date();
+  const currentMins = now.getHours() * 60 + now.getMinutes();
+  const todaySchedule = SCHEDULE[todayName];
+
+  todaySchedule.forEach((lesson, idx) => {
+    const startMins = timeStrToMinutes(TIME[lesson.pair].start);
+    const diff = startMins - currentMins;
+    const key = todayName + '-' + lesson.pair + '-' + idx;
+
+    if (diff === 10 && !notifiedKeys.has(key)) {
+      notifiedKeys.add(key);
+      const teacherLabel = lesson.teacher || (lesson.teacherOptions ? lesson.teacherOptions.map(t=>t.name).join(' / ') : '');
+      const title = `Через 10 хв: ${lesson.subject}`;
+      const sub = teacherLabel || `Пара ${ROMAN[lesson.pair]}`;
+
+      showToast(title, sub);
+
+      if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
+        try { new Notification(title, { body: sub, icon: '📚' }); } catch(e) {}
+      }
+    }
+  });
+}
+
 // Update every 10 seconds
-setInterval(updateCurrentPairCard, 10000);
+setInterval(() => { updateCurrentPairCard(); checkUpcomingNotifications(); }, 10000);
 updateCurrentPairCard();
+checkUpcomingNotifications();
+
 
 </script>
 </body>
 </html>
-
