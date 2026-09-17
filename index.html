@@ -1135,14 +1135,14 @@
       <div class="pair-card-top">
         <div class="time-badge">
           <span class="time-big" id="currentTime">13:08</span>
-          <span class="time-label">час</span>
+          <span class="time-label" id="timeLabel">час</span>
         </div>
         <div class="pair-info" id="currentLessonsList">
         </div>
       </div>
       <div class="time-progress">
         <div class="time-progress-label">
-          <span>Час до кінця пари</span>
+          <span id="progressLabel">Час до кінця пари</span>
           <span id="progressPercent">0%</span>
         </div>
         <div class="time-progress-bar">
@@ -1152,11 +1152,11 @@
       <div class="time-remaining">
         <div class="time-remaining-item">
           <span class="time-remaining-value" id="remainingMins">0</span>
-          <span class="time-remaining-label">хвилин</span>
+          <span class="time-remaining-label" id="remainingLabel">хвилин</span>
         </div>
         <div class="time-remaining-item">
           <span class="time-remaining-value" id="endTime">—:—</span>
-          <span class="time-remaining-label">закінчення</span>
+          <span class="time-remaining-label" id="endLabel">закінчення</span>
         </div>
       </div>
     </div>
@@ -1719,6 +1719,27 @@ function getCurrentPairs() {
   return matches;
 }
 
+function getNextPairs() {
+  if (!todayName) return { lessons: [], startMins: null };
+
+  const now = new Date();
+  const currentMins = now.getHours() * 60 + now.getMinutes();
+  const todaySchedule = SCHEDULE[todayName];
+
+  let minStart = null;
+  todaySchedule.forEach(lesson => {
+    const startMins = timeStrToMinutes(TIME[lesson.pair].start);
+    if (startMins > currentMins && (minStart === null || startMins < minStart)) {
+      minStart = startMins;
+    }
+  });
+
+  if (minStart === null) return { lessons: [], startMins: null };
+
+  const lessons = todaySchedule.filter(lesson => timeStrToMinutes(TIME[lesson.pair].start) === minStart);
+  return { lessons, startMins: minStart };
+}
+
 function isDayOver() {
   if (!todayName) return true; // weekend — nothing scheduled at all
   const now = new Date();
@@ -1740,52 +1761,90 @@ function joinButtonsHtml(lesson){
   return `<div class="join-now-row">${btns}</div>`;
 }
 
+function lessonRowHtml(lesson, opts){
+  opts = opts || {};
+  return `
+    <div class="current-lesson-row">
+      <p class="subject">${lesson.subject}${lesson.groupNote ? ` <span style="font-size:12px;color:var(--ink-faint);font-weight:500;">(${lesson.groupNote})</span>` : ''}</p>
+      <div class="meta">
+        <span class="type">${lesson.type}</span>${lesson.teacher || (lesson.teacherOptions ? lesson.teacherOptions.map(t=>t.name).join(' / ') : '')}
+      </div>
+      ${opts.showJoin ? joinButtonsHtml(lesson) : ''}
+    </div>
+  `;
+}
+
 function updateCurrentPairCard() {
   const matches = getCurrentPairs();
   const card = document.getElementById('currentPairCard');
   const allDoneCard = document.getElementById('allDoneCard');
+  const list = document.getElementById('currentLessonsList');
+  const now = new Date();
+  const nowText = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
 
-  if (matches.length === 0) {
-    card.classList.remove('active');
-    card.classList.add('hidden');
+  // ---- state: a pair is happening right now ----
+  if (matches.length > 0) {
+    allDoneCard.classList.remove('active');
+    card.classList.add('active');
+    card.classList.remove('hidden', 'upcoming-mode');
 
-    if (isDayOver()) {
-      allDoneCard.classList.add('active');
-    } else {
-      allDoneCard.classList.remove('active');
-    }
+    document.getElementById('currentTime').textContent = nowText;
+    document.getElementById('timeLabel').textContent = 'час';
+    document.getElementById('progressLabel').textContent = 'Час до кінця пари';
+    document.getElementById('remainingLabel').textContent = 'хвилин';
+    document.getElementById('endLabel').textContent = 'закінчення';
+
+    list.innerHTML = matches.map(m => lessonRowHtml(m.lesson, { showJoin: true })).join('');
+
+    const { startMins, endMins, currentMins } = matches[0];
+    const remainingMins = endMins - currentMins;
+    const progressPercent = Math.round(((currentMins - startMins) / (endMins - startMins)) * 100);
+
+    document.getElementById('remainingMins').textContent = remainingMins;
+    document.getElementById('endTime').textContent = minutesToTimeStr(endMins);
+    document.getElementById('progressPercent').textContent = `${progressPercent}%`;
+    document.getElementById('progressFill').style.width = `${progressPercent}%`;
     return;
   }
 
+  // ---- state: day is fully over (or weekend) ----
+  if (isDayOver()) {
+    card.classList.remove('active');
+    card.classList.add('hidden');
+    allDoneCard.classList.add('active');
+    return;
+  }
+
+  // ---- state: break — show the next upcoming pair with a countdown ----
   allDoneCard.classList.remove('active');
-  card.classList.add('active');
+  card.classList.add('active', 'upcoming-mode');
   card.classList.remove('hidden');
 
-  const { startMins, endMins, currentMins } = matches[0];
-  const now = new Date();
+  const { lessons, startMins } = getNextPairs();
+  const currentMins = now.getHours() * 60 + now.getMinutes();
 
-  document.getElementById('currentTime').textContent =
-    `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+  document.getElementById('currentTime').textContent = nowText;
+  document.getElementById('timeLabel').textContent = 'час';
+  document.getElementById('progressLabel').textContent = 'До початку пари';
+  document.getElementById('remainingLabel').textContent = 'хвилин';
+  document.getElementById('endLabel').textContent = 'початок';
 
-  // render one row per parallel lesson happening right now
-  const list = document.getElementById('currentLessonsList');
-  list.innerHTML = matches.map(m => `
-    <div class="current-lesson-row">
-      <p class="subject">${m.lesson.subject}${m.lesson.groupNote ? ` <span style="font-size:12px;color:var(--ink-faint);font-weight:500;">(${m.lesson.groupNote})</span>` : ''}</p>
-      <div class="meta">
-        <span class="type">${m.lesson.type}</span>${m.lesson.teacher || (m.lesson.teacherOptions ? m.lesson.teacherOptions.map(t=>t.name).join(' / ') : '')}
-      </div>
-      ${joinButtonsHtml(m.lesson)}
-    </div>
-  `).join('');
+  list.innerHTML = lessons.map(lesson => lessonRowHtml(lesson, { showJoin: true })).join('') ||
+    `<div class="current-lesson-row"><p class="subject">Перерва</p></div>`;
 
-  const remainingMins = endMins - currentMins;
-  const progressPercent = Math.round(((currentMins - startMins) / (endMins - startMins)) * 100);
+  const untilStart = startMins - currentMins;
+  // show progress through the break itself: from previous pair's end (or day start) to next pair's start
+  const prevEnd = Math.max(0, ...SCHEDULE[todayName]
+    .map(l => timeStrToMinutes(TIME[l.pair].end))
+    .filter(end => end <= currentMins), 0);
+  const breakStart = prevEnd || (startMins - 30);
+  const breakLen = Math.max(1, startMins - breakStart);
+  const breakProgress = Math.min(100, Math.max(0, Math.round(((currentMins - breakStart) / breakLen) * 100)));
 
-  document.getElementById('remainingMins').textContent = remainingMins;
-  document.getElementById('endTime').textContent = minutesToTimeStr(endMins);
-  document.getElementById('progressPercent').textContent = `${progressPercent}%`;
-  document.getElementById('progressFill').style.width = `${progressPercent}%`;
+  document.getElementById('remainingMins').textContent = untilStart;
+  document.getElementById('endTime').textContent = minutesToTimeStr(startMins);
+  document.getElementById('progressPercent').textContent = `${breakProgress}%`;
+  document.getElementById('progressFill').style.width = `${breakProgress}%`;
 }
 
 /* ---------- 10-minute-before notification ---------- */
