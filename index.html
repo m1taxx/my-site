@@ -1217,7 +1217,8 @@ const L = {
   zoomDoronina: "https://us05web.zoom.us/j/85961056585?pwd=sRaaaqE9BYhTl5bF1I9sO8aPK89jbs.1",
   zoomGulianytskyi: "https://us04web.zoom.us/j/74556749396?pwd=hvrDS9VgcBmA62qhrjEkFrnOOVavwM.1",
   zoomRabanovychPr: "https://us04web.zoom.us/j/73255785726?pwd=dsO2lbSuIXzPBJUbMfBHdKoeOsSnfO.1",
-  zoomBraganets: "https://us04web.zoom.us/j/76479733144?pwd=d0JOQ3ZxL3F6WUhad25xTi9NYmV4Zz09"
+  zoomBraganets: "https://us04web.zoom.us/j/76479733144?pwd=d0JOQ3ZxL3F6WUhad25xTi9NYmV4Zz09",
+  zoomNomirovskyi: "https://us04web.zoom.us/j/74712646970?pwd=KqtnzuwXiUr2q8JHlWwHIkaDxbbTzz.1"
   
 };
 
@@ -1270,7 +1271,9 @@ const SCHEDULE = {
       { label:"Google Диск", url:L.driveAlgebra },
       { label:"Домашнє завдання (текст)", url:"materials/algebra-dz.pdf" }
     ] },
-    { pair:3, subject:"Математичний аналіз", type:"пр · 28 год", teacher:"проф. Номіровський А.Д.", materials:[] },
+    { pair:3, subject:"Математичний аналіз", type:"пр · 28 год", teacher:"проф. Номіровський А.Д.", materials:[
+      { label:"Zoom", url:L.zoomNomirovskyi }
+    ] },
     { pair:4, subject:"Алгебра та геометрія", type:"лек · 22 год + конс. 2 год", teacher:"доц. Рабанович В.Я.", materials:[
       { label:"Zoom (лекція)", url:L.zoomRabanovych },
       { label:"Google Диск", url:L.driveAlgebra },
@@ -1325,7 +1328,7 @@ const SCHEDULE = {
       ], materials:[] },
     { pair:2, subject:"Математичний аналіз", type:"пр · 2 год", teacherOptions:[
         { name:"проф. Рубльов Б.В.", url:L.zoomRublyov },
-        { name:"проф. Номіровський Д.А.", url:null },
+        { name:"проф. Номіровський Д.А.", url:L.zoomNomirovskyi },
         { name:"доц. Гуляницький", url:L.zoomGulianytskyi }
       ], materials:[] },
     { pair:3, subject:"Іноземна мова", type:"пр · 28 год", teacherOptions:[
@@ -1333,7 +1336,9 @@ const SCHEDULE = {
         { name:"Дороніна", url:L.zoomDoronina },
         { name:"Паламарчук", url:null }
       ], materials:[] },
-    { pair:4, subject:"Математичний аналіз", type:"пр · 28 год (одна з підгруп)", teacher:"проф. Номіровський А.Д.", materials:[] }
+    { pair:4, subject:"Математичний аналіз", type:"пр · 28 год (одна з підгруп)", teacher:"проф. Номіровський А.Д.", materials:[
+      { label:"Zoom", url:L.zoomNomirovskyi }
+    ] }
   ]
 };
 
