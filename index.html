@@ -703,6 +703,23 @@
     line-height:1.5;
   }
 
+  .sat-note{
+    background:var(--amber-soft);
+    border:1px solid var(--amber-bright);
+    border-radius:12px;
+    padding:12px 16px;
+    margin-bottom:14px;
+    font-size:13.5px;
+    color:var(--ink);
+    line-height:1.5;
+  }
+  .sat-note span{
+    display:block;
+    margin-top:2px;
+    font-size:12px;
+    color:var(--ink-faint);
+  }
+
   nav.days{
     display:flex;
     gap:6px;
@@ -1178,7 +1195,7 @@
         <label>До дати<input type="date" id="calEnd"></label>
       </div>
       <button class="cal-export-btn" id="calExportBtn">Завантажити .ics</button>
-      <p class="cal-export-hint">Файл додасть усі пари як щотижневі повторювані події з нагадуванням за 10 хв. Відкрий його на телефоні — застосунок Календар сам запропонує імпортувати. У Google Calendar: Налаштування → Імпорт.</p>
+      <p class="cal-export-hint">Файл додасть усі пари як щотижневі повторювані події з нагадуванням за 10 хв. Суботи додаються окремими подіями — за ротацією. Відкрий його на телефоні — застосунок Календар сам запропонує імпортувати. У Google Calendar: Налаштування → Імпорт.</p>
     </div>
 
     <nav class="days" id="daysNav"></nav>
@@ -1219,9 +1236,8 @@ const L = {
   zoomRabanovychPr: "https://us04web.zoom.us/j/73255785726?pwd=dsO2lbSuIXzPBJUbMfBHdKoeOsSnfO.1",
   zoomBraganets: "https://us04web.zoom.us/j/76479733144?pwd=d0JOQ3ZxL3F6WUhad25xTi9NYmV4Zz09",
   zoomNomirovskyi: "https://us04web.zoom.us/j/74712646970?pwd=KqtnzuwXiUr2q8JHlWwHIkaDxbbTzz.1",
-  zoomEfremov : 'https://knu-ua.zoom.us/j/7486881580?pwd=Uq2JYtpkCKB3L5dma7UoPLaIj3jiFP.1',
-  zoomDaniel : ' https://us04web.zoom.us/j/75784901948?pwd=gxO0Ikdk1LJXvaoEGTJ7uaGXLYvZU3.1'
-  
+  zoomEfremov: "https://knu-ua.zoom.us/j/7486881580?pwd=Uq2JYtpkCKB3L5dma7UoPLaIj3jiFP.1",
+  zoomDaniel: "https://us04web.zoom.us/j/75784901948?pwd=gxO0Ikdk1LJXvaoEGTJ7uaGXLYvZU3.1"
   
 };
 
@@ -1230,7 +1246,7 @@ const SCHEDULE = {
     { pair:1, subject:"Вступ до університетських студій", type:"лек · 28 год", teacher:"доц. Набока С.В.", materials:[
       { label : "Zoom (лекція)", url:L.zoomNaboka },
     ] },
-     { pair:2, subject:"Дискретна математика", type:"лек · 20 год + конс. 2 год", teacher:"доц. Трохимчук Р.М.", materials:[
+    { pair:2, subject:"Дискретна математика", type:"лек · 20 год + конс. 2 год", teacher:"доц. Трохимчук Р.М.", materials:[
       { label:"Zoom (лекція)", url:L.zoomTrokhymchuk },
       { label:"Youtube", url:L.dmBook },
       { label:"Дискретна математика (текст)", url:"materials/discrete-math.pdf" }
@@ -1345,6 +1361,32 @@ const SCHEDULE = {
   ]
 };
 
+/* ---------- Saturday: rotating schedule ----------
+   Every Saturday copies a different weekday, shifting by one day each week.
+   Anchor: Saturday 17 Oct 2026 = Monday, then Tuesday, Wednesday, Thursday, Friday, and back to Monday. */
+const SAT_WEEKDAYS = ["Понеділок","Вівторок","Середа","Четвер","П'ятниця"];
+const SAT_ANCHOR = new Date(2026, 9, 17);
+const UA_MONTHS = ["січня","лютого","березня","квітня","травня","червня","липня","серпня","вересня","жовтня","листопада","грудня"];
+
+function satMirrorDay(satDate){
+  const d = new Date(satDate.getFullYear(), satDate.getMonth(), satDate.getDate());
+  const weeks = Math.round((d - SAT_ANCHOR) / (7 * 24 * 3600 * 1000));
+  return SAT_WEEKDAYS[((weeks % 5) + 5) % 5];
+}
+
+function upcomingSaturday(from){
+  const d = new Date(from.getFullYear(), from.getMonth(), from.getDate());
+  d.setDate(d.getDate() + ((6 - d.getDay() + 7) % 7)); // today if Saturday, otherwise the next one
+  return d;
+}
+
+function fmtUaDate(d){ return d.getDate() + ' ' + UA_MONTHS[d.getMonth()]; }
+
+const satDate = upcomingSaturday(new Date());
+const satNextDate = new Date(satDate.getFullYear(), satDate.getMonth(), satDate.getDate() + 7);
+const satMirror = satMirrorDay(satDate);
+SCHEDULE["Субота"] = SCHEDULE[satMirror];
+
 const ROMAN = {1:"I",2:"II",3:"III",4:"IV"};
 const days = Object.keys(SCHEDULE);
 
@@ -1400,7 +1442,7 @@ function getJoinLinks(lesson){
 }
 
 // JS getDay(): 0 Sun ... 6 Sat -> map to our day names (Mon-Fri)
-const jsDayToName = {1:"Понеділок",2:"Вівторок",3:"Середа",4:"Четвер",5:"П'ятниця"};
+const jsDayToName = {1:"Понеділок",2:"Вівторок",3:"Середа",4:"Четвер",5:"П'ятниця",6:"Субота"};
 const todayName = jsDayToName[new Date().getDay()] || null;
 
 const nav = document.getElementById('daysNav');
@@ -1420,6 +1462,14 @@ days.forEach((day, i) => {
   const panel = document.createElement('div');
   panel.className = 'day-panel';
   panel.dataset.day = day;
+
+  if (day === "Субота") {
+    const note = document.createElement('div');
+    note.className = 'sat-note';
+    note.innerHTML = `🗓️ Субота, ${fmtUaDate(satDate)} — розклад як у <b>${satMirror}</b>` +
+      `<span>Наступна субота (${fmtUaDate(satNextDate)}): як у ${satMirrorDay(satNextDate)}</span>`;
+    panel.appendChild(note);
+  }
 
   SCHEDULE[day].forEach(lesson => {
     const card = document.createElement('div');
@@ -1599,6 +1649,43 @@ function lessonMaterialsText(lesson){
   return lesson.materials.map(m => `${m.label}: ${m.url}`).join('; ');
 }
 
+function icsEventLines(lesson, dateObj, uid, rrule, extraDesc){
+  const time = TIME[lesson.pair];
+  const dtStart = icsDateTime(dateObj, time.start);
+  const dtEnd = icsDateTime(dateObj, time.end);
+
+  const summaryParts = [lesson.subject];
+  if (lesson.groupNote) summaryParts.push(`(${lesson.groupNote})`);
+
+  const descParts = [];
+  const teacherText = lessonTeacherText(lesson);
+  if (teacherText) descParts.push(`Викладач: ${teacherText}`);
+  descParts.push(`Тип: ${lesson.type}`);
+  const materialsText = lessonMaterialsText(lesson);
+  if (materialsText) descParts.push(`Матеріали: ${materialsText}`);
+  if (extraDesc) descParts.push(extraDesc);
+
+  const lines = [
+    'BEGIN:VEVENT',
+    `UID:k10k11-${uid}-${dtStart}@rozklad`,
+    `DTSTAMP:${dtStart}`,
+    `DTSTART:${dtStart}`,
+    `DTEND:${dtEnd}`
+  ];
+  if (rrule) lines.push(rrule);
+  lines.push(
+    `SUMMARY:${icsEscape(summaryParts.join(' '))}`,
+    `DESCRIPTION:${icsEscape(descParts.join('\n'))}`,
+    'BEGIN:VALARM',
+    'ACTION:DISPLAY',
+    'DESCRIPTION:Пара через 10 хвилин',
+    'TRIGGER:-PT10M',
+    'END:VALARM',
+    'END:VEVENT'
+  );
+  return lines;
+}
+
 function buildICS(startDateStr, endDateStr){
   const startDate = new Date(startDateStr + 'T00:00:00');
   const untilDate = new Date(endDateStr + 'T23:59:00');
@@ -1611,50 +1698,30 @@ function buildICS(startDateStr, endDateStr){
     'CALSCALE:GREGORIAN'
   ];
 
-  let uidCounter = 0;
+  let uid = 0;
 
+  // Mon–Fri: weekly recurring events
   WEEKDAY_ORDER.forEach(day => {
-    const lessons = SCHEDULE[day] || [];
     const firstDate = nextDateForWeekday(startDate, day);
     if (firstDate > untilDate) return;
-
-    lessons.forEach(lesson => {
-      uidCounter++;
-      const time = TIME[lesson.pair];
-      const dtStart = icsDateTime(firstDate, time.start);
-      const dtEnd = icsDateTime(firstDate, time.end);
-      const byday = ICS_BYDAY[day];
-
-      const summaryParts = [lesson.subject];
-      if (lesson.groupNote) summaryParts.push(`(${lesson.groupNote})`);
-      const summary = icsEscape(summaryParts.join(' '));
-
-      const descParts = [];
-      const teacherText = lessonTeacherText(lesson);
-      if (teacherText) descParts.push(`Викладач: ${teacherText}`);
-      descParts.push(`Тип: ${lesson.type}`);
-      const materialsText = lessonMaterialsText(lesson);
-      if (materialsText) descParts.push(`Матеріали: ${materialsText}`);
-      const description = icsEscape(descParts.join('\n'));
-
-      lines.push(
-        'BEGIN:VEVENT',
-        `UID:k10k11-${uidCounter}-${dtStart}@rozklad`,
-        `DTSTAMP:${dtStart}`,
-        `DTSTART:${dtStart}`,
-        `DTEND:${dtEnd}`,
-        `RRULE:FREQ=WEEKLY;BYDAY=${byday};UNTIL=${untilStr}`,
-        `SUMMARY:${summary}`,
-        `DESCRIPTION:${description}`,
-        'BEGIN:VALARM',
-        'ACTION:DISPLAY',
-        'DESCRIPTION:Пара через 10 хвилин',
-        'TRIGGER:-PT10M',
-        'END:VALARM',
-        'END:VEVENT'
-      );
+    (SCHEDULE[day] || []).forEach(lesson => {
+      uid++;
+      lines.push(...icsEventLines(lesson, firstDate, uid,
+        `RRULE:FREQ=WEEKLY;BYDAY=${ICS_BYDAY[day]};UNTIL=${untilStr}`, ''));
     });
   });
+
+  // Saturday: the schedule rotates (copies a different weekday each week),
+  // so every Saturday becomes its own one-off set of events
+  const sat = new Date(startDate);
+  while (sat.getDay() !== 6) sat.setDate(sat.getDate() + 1);
+  for (; sat <= untilDate; sat.setDate(sat.getDate() + 7)) {
+    const mirror = satMirrorDay(sat);
+    (SCHEDULE[mirror] || []).forEach(lesson => {
+      uid++;
+      lines.push(...icsEventLines(lesson, new Date(sat), uid, '', `Субота за розкладом: ${mirror}`));
+    });
+  }
 
   lines.push('END:VCALENDAR');
   return lines.join('\r\n');
@@ -1904,3 +1971,4 @@ checkUpcomingNotifications();
 </script>
 </body>
 </html>
+
